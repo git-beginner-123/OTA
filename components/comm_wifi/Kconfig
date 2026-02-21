@@ -13,10 +13,10 @@ menu "COMM WiFi"
 
     config COMM_WIFI_OTA_URL
         string "OTA firmware URL"
-        default "http://192.168.109.128:8000/stem_framework_idf61_lcd.bin"
+        default "https://raw.githubusercontent.com/git-beginner-123/mystem/master/ota/latest.bin"
         help
             HTTP/HTTPS URL used by WIFI OTA experiment.
-            Example: http://<host-ip>:8000/stem_framework_idf61_lcd.bin
+            Example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin
 
     config COMM_WIFI_CONNECT_TIMEOUT_MS
         int "WiFi connect timeout (ms)"

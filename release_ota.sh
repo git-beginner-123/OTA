@@ -23,10 +23,11 @@ Options:
 What it does:
   1) Optional build (idf.py build)
   2) Copy firmware to ota/app-<version>.bin
-  3) Generate ota/app-<version>.sha256
-  4) Commit + push code and ota files
-  5) Create git tag and push
-  6) Create/update GitHub release and upload bin + sha256 (unless --git-only)
+  3) Update ota/latest.bin for stable OTA URL
+  4) Generate ota/app-<version>.sha256 and ota/latest.sha256
+  5) Commit + push code and ota files
+  6) Create git tag and push
+  7) Create/update GitHub release and upload bin + sha256 (unless --git-only)
 EOF
 }
 
@@ -175,19 +176,23 @@ main() {
   [ -n "$bin_path" ] || die "Cannot auto-detect firmware bin. Use --bin PATH."
   [ -f "$bin_path" ] || die "Firmware bin not found: $bin_path"
 
-  local ota_dir ota_bin ota_sha
+  local ota_dir ota_bin ota_sha ota_latest ota_latest_sha
   ota_dir="ota"
   ota_bin="${ota_dir}/app-${version}.bin"
   ota_sha="${ota_dir}/app-${version}.sha256"
+  ota_latest="${ota_dir}/latest.bin"
+  ota_latest_sha="${ota_dir}/latest.sha256"
   mkdir -p "$ota_dir"
 
   info "Preparing OTA artifacts"
   cp -f "$bin_path" "$ota_bin"
+  cp -f "$bin_path" "$ota_latest"
   sha256sum "$ota_bin" >"$ota_sha"
+  sha256sum "$ota_latest" >"$ota_latest_sha"
 
   info "Staging git changes (excluding build outputs)"
   git add . ':!build/' ':!idf_snapshots/'
-  git add "$ota_bin" "$ota_sha"
+  git add "$ota_bin" "$ota_sha" "$ota_latest" "$ota_latest_sha"
 
   if ! git diff --cached --quiet; then
     info "Committing changes"
@@ -215,8 +220,10 @@ main() {
 
   if [ "$git_only" -eq 1 ]; then
     info "Skipping GitHub Release upload (--git-only)"
-    info "Use this OTA URL (tagged raw file):"
-    echo "https://raw.githubusercontent.com/${repo}/${version}/$(basename "$ota_bin")"
+    info "Stable OTA URL (recommended):"
+    echo "https://raw.githubusercontent.com/${repo}/${branch}/ota/latest.bin"
+    info "Version-pinned OTA URL:"
+    echo "https://raw.githubusercontent.com/${repo}/${version}/ota/$(basename "$ota_bin")"
     exit 0
   fi
 
