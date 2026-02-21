@@ -4,16 +4,16 @@
 #include "driver/gpio.h"
 #include "esp_timer.h"
 #include "esp_log.h"
-#include "display/st7735.h"
+#include "display/st7789.h"
 
 #include <stdio.h>
 #include <stdbool.h>
 
 // -------------------- GPIO mapping --------------------
 
-#define PIN_RED    GPIO_NUM_13
+#define PIN_RED    GPIO_NUM_36
 #define PIN_GREEN  GPIO_NUM_14
-#define PIN_YELLOW GPIO_NUM_1
+#define PIN_YELLOW GPIO_NUM_13
 
 // -------------------- state --------------------
 
@@ -93,9 +93,9 @@ static void draw_gpio_page(void)
     Ui_Println("LED + SWITCH (3CH)");
     Ui_Println("");
 
-    draw_row(0, "RED",    13, s_red_on,    s_sel == 0);
+    draw_row(0, "RED",    36, s_red_on,    s_sel == 0);
     draw_row(1, "GREEN",  14, s_green_on,  s_sel == 1);
-    draw_row(2, "YELLOW",  1, s_yellow_on, s_sel == 2);
+    draw_row(2, "YELLOW", 13, s_yellow_on, s_sel == 2);
 
     Ui_Println("");
     Ui_Println("ON=HIGH  OFF=LOW");
@@ -107,12 +107,11 @@ static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
     Ui_DrawFrame("GPIO", "OK:START  BACK");
-    Ui_Println("3 outputs:");
-    Ui_Println("RED   -> GPIO13");
+    Ui_Println("Goal: control 3 LEDs.");
+    Ui_Println("RED   -> GPIO36");
     Ui_Println("GREEN -> GPIO14");
-    Ui_Println("YELLOW-> GPIO1");
-    Ui_Println("");
-    Ui_Println("DN select, OK toggle");
+    Ui_Println("YEL   -> GPIO13");
+    Ui_Println("DN select, OK toggle.");
 }
 
 static void on_enter(ExperimentContext* ctx)
@@ -120,10 +119,7 @@ static void on_enter(ExperimentContext* ctx)
     (void)ctx;
     ESP_LOGI(TAG, "on_enter");
 
-    // Use default color correction
-    St7735_SetSoftwareInvert(false);
-    St7735_SetSoftwareRBSwap(true);
-    St7735_SetInversion(true);
+    St7789_ApplyPanelDefaultProfile();
 
     // Requirement: set outputs on enter
     gpio_set_outputs_mode();
@@ -143,10 +139,7 @@ static void exp_on_exit(ExperimentContext* ctx)
     (void)ctx;
     ESP_LOGI(TAG, "on_exit");
 
-    // Restore defaults
-    St7735_SetSoftwareInvert(false);
-    St7735_SetSoftwareRBSwap(true);
-    St7735_SetInversion(true);
+    St7789_ApplyPanelDefaultProfile();
 
     // Requirement: set inputs on exit
     gpio_set_inputs_mode();
@@ -157,10 +150,7 @@ static void start(ExperimentContext* ctx)
     (void)ctx;
     ESP_LOGI(TAG, "start");
 
-    // Ensure default correction still applied when starting
-    St7735_SetSoftwareInvert(false);
-    St7735_SetSoftwareRBSwap(true);
-    St7735_SetInversion(true);
+    St7789_ApplyPanelDefaultProfile();
 
     // Ensure outputs mode in case framework differs
     gpio_set_outputs_mode();
@@ -182,10 +172,7 @@ static void stop(ExperimentContext* ctx)
     (void)ctx;
     ESP_LOGI(TAG, "stop");
 
-    // Restore defaults
-    St7735_SetSoftwareInvert(false);
-    St7735_SetSoftwareRBSwap(true);
-    St7735_SetInversion(true);
+    St7789_ApplyPanelDefaultProfile();
 
     // Some frameworks call stop before exit
     gpio_set_inputs_mode();

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 
 static const char* TAG = "exp_wifi_remote";
+#define REMOTE_HTTPD_STACK_BYTES 6144
 
 /* ---------- Web page (MVP) ---------- */
 
@@ -204,7 +205,7 @@ static esp_err_t start_http_server(httpd_handle_t* out)
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
     config.max_uri_handlers = 8;
-    config.stack_size = 8192;
+    config.stack_size = REMOTE_HTTPD_STACK_BYTES;
 
     httpd_handle_t server = NULL;
     esp_err_t err = httpd_start(&server, &config);

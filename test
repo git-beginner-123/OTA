@@ -1,0 +1,38 @@
+# Ubuntu 下执行（需要 ffmpeg + ffprobe）
+# 目标：完整转码、240x240、<=6MiB、原视频删除
+
+IN="14527_Moonand2024TSE_YouTubeHD.webm"
+OUT="${IN%.webm}_240_6m.mjpeg"
+LIMIT=$((6*1024*1024))
+PIX_FMT="${PIX_FMT:-yuv420p}"
+EQ_FILTER="${EQ_FILTER:-eq=brightness=0.03:contrast=1.12:gamma=1.06:saturation=1.05}"
+
+set -e
+
+best=""
+for FPS in 10 8 6 5 4; do
+  for Q in 22 26 30 34 38; do
+    ffmpeg -y -hide_banner -loglevel error \
+      -i "$IN" \
+      -vf "fps=${FPS},scale=240:240:force_original_aspect_ratio=decrease:flags=lanczos,pad=240:240:(ow-iw)/2:(oh-ih)/2:black,${EQ_FILTER}" \
+      -c:v mjpeg -pix_fmt "${PIX_FMT}" -q:v "$Q" -an -f mjpeg "$OUT"
+
+    SZ=$(stat -c%s "$OUT")
+    echo "try fps=$FPS q=$Q size=$SZ"
+
+    if [ "$SZ" -le "$LIMIT" ]; then
+      best="ok"
+      break 2
+    fi
+  done
+done
+
+if [ -z "$best" ]; then
+  echo "未压到 6MiB 内，请继续降 FPS 或提高 Q（更糙）"
+  exit 1
+fi
+
+# 成功后删除原视频
+rm -f "$IN"
+echo "DONE: $OUT"
+ls -lh "$OUT"

@@ -1,5 +1,5 @@
 #include "ui/ui.h"
-#include "display/st7735.h"
+#include "display/st7789.h"
 #include "display/font8x16.h"
 #include "display/font5x7.h"
 #include "esp_log.h"
@@ -38,13 +38,29 @@
 #define UI_FOOTER_H     26
 #define UI_BAR_W         5
 
-#define UI_LINEBUF_COUNT 4
+#define UI_LINEBUF_COUNT 1
 
 static int s_cursor_y = 0;
+static int s_batch_depth = 0;
 
 static uint16_t* s_linebuf[UI_LINEBUF_COUNT];
 static int s_linebuf_idx = 0;
 static int s_linebuf_h = 0;
+static bool s_mainmenu_cache_valid = false;
+static int s_mainmenu_last_index = -1;
+static int s_mainmenu_last_start = -1;
+static int s_mainmenu_last_count = -1;
+static int s_mainmenu_last_rows = -1;
+
+static void Ui_MainMenuInvalidate(void)
+{
+    s_mainmenu_cache_valid = false;
+    s_mainmenu_last_index = -1;
+    s_mainmenu_last_start = -1;
+    s_mainmenu_last_count = -1;
+    s_mainmenu_last_rows = -1;
+}
+
 static void Ui_DrawListRow(int y, const char* text, bool selected);
 static void Ui_DrawWrappedTextBody(const char* text, int scroll_line);
 static SemaphoreHandle_t s_lcd_mutex = 0;
@@ -57,6 +73,22 @@ void Ui_LcdLock(void)
 void Ui_LcdUnlock(void)
 {
     if (s_lcd_mutex) xSemaphoreGive(s_lcd_mutex);
+}
+
+static inline void Ui_MaybeFlush(void)
+{
+    if (s_batch_depth <= 0) St7789_Flush();
+}
+
+void Ui_BeginBatch(void)
+{
+    s_batch_depth++;
+}
+
+void Ui_EndBatch(void)
+{
+    if (s_batch_depth > 0) s_batch_depth--;
+    if (s_batch_depth == 0) St7789_Flush();
 }
 
 
@@ -72,10 +104,16 @@ static void Ui_LineBufInit(int line_h)
     }
 
     s_linebuf_h = line_h;
-    int w = St7735_Width();
+    int w = St7789_Width();
+    int bytes = w * line_h * (int)sizeof(uint16_t);
 
     for (int i = 0; i < UI_LINEBUF_COUNT; i++) {
-        s_linebuf[i] = (uint16_t*)heap_caps_malloc(w * line_h * sizeof(uint16_t), MALLOC_CAP_DMA);
+        // Use normal 8-bit heap to avoid consuming scarce DMA/internal memory
+        // needed by WiFi softAP and audio drivers.
+        s_linebuf[i] = (uint16_t*)heap_caps_malloc(bytes, MALLOC_CAP_8BIT);
+        if (!s_linebuf[i]) {
+            ESP_LOGW("UI_LCD", "linebuf alloc failed idx=%d bytes=%d", i, bytes);
+        }
     }
 
     s_linebuf_idx = 0;
@@ -85,11 +123,17 @@ static uint16_t* Ui_LineBufNext(void)
 {
     uint16_t* p = s_linebuf[s_linebuf_idx];
     s_linebuf_idx = (s_linebuf_idx + 1) % UI_LINEBUF_COUNT;
+    if (!p) {
+        for (int i = 0; i < UI_LINEBUF_COUNT; i++) {
+            if (s_linebuf[i]) return s_linebuf[i];
+        }
+    }
     return p;
 }
 
 static inline void LineBufFill(uint16_t* buf, int w, int h, uint16_t c)
 {
+    if (!buf) return;
     int n = w * h;
     for (int i = 0; i < n; i++) buf[i] = c;
 }
@@ -97,6 +141,7 @@ static inline void LineBufFill(uint16_t* buf, int w, int h, uint16_t c)
 static inline void LineBufFillRect(uint16_t* buf, int w, int h,
                                    int x, int y, int rw, int rh, uint16_t c)
 {
+    if (!buf) return;
     if (rw <= 0 || rh <= 0) return;
     if (x < 0) { rw += x; x = 0; }
     if (y < 0) { rh += y; y = 0; }
@@ -185,7 +230,7 @@ static void draw_text8x16_to_buf(uint16_t* buf, int bw, int bh, int x, int y, co
         draw_char8x16_to_buf(buf, bw, bh, px, y, c, fg);
         px += (UI_FONT_W + UI_CHAR_GAP);
 
-        if (px > bw - (UI_FONT_W + UI_CHAR_GAP)) {
+        if (px > bw - UI_FONT_W) {
             y += UI_LINE_H;
             px = x;
         }
@@ -249,39 +294,39 @@ static void Ui_DrawLabelImage(int x, int y, const char* text, uint16_t fg, uint1
     uint16_t buf[LABEL_MAX_W * LABEL_H];
     LineBufFill(buf, w, LABEL_H, bg);
     draw_text5x7_to_buf(buf, w, LABEL_H, LABEL_PAD_X, LABEL_PAD_Y, text, fg);
-    St7735_BlitRect(x, y, w, LABEL_H, buf);
+    St7789_BlitRect(x, y, w, LABEL_H, buf);
 }
 
 static void Ui_DrawHeader(const char* title)
 {
-    St7735_FillRect(0, 0, St7735_Width(), UI_HEADER_H, UI_COLOR_BG);
-    St7735_FillRect(0, UI_HEADER_H - 2, St7735_Width(), 2, UI_COLOR_MUTED);
+    St7789_FillRect(0, 0, St7789_Width(), UI_HEADER_H, UI_COLOR_BG);
+    St7789_FillRect(0, UI_HEADER_H - 2, St7789_Width(), 2, UI_COLOR_MUTED);
 
     // Simple title text using a line buffer
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
-    int w = St7735_Width();
+    int w = St7789_Width();
 
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, title, UI_COLOR_ACCENT);
-    St7735_BlitRect(0, 6, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, 6, w, UI_LINE_H, buf);
 
     s_cursor_y = UI_HEADER_H + UI_PAD_Y;
 }
 
 static void Ui_DrawFooter(const char* hint)
 {
-    int y = St7735_Height() - UI_FOOTER_H;
-    St7735_FillRect(0, y, St7735_Width(), UI_FOOTER_H, UI_COLOR_BG);
-    St7735_FillRect(0, y, St7735_Width(), 2, UI_COLOR_MUTED);
+    int y = St7789_Height() - UI_FOOTER_H;
+    St7789_FillRect(0, y, St7789_Width(), UI_FOOTER_H, UI_COLOR_BG);
+    St7789_FillRect(0, y, St7789_Width(), 2, UI_COLOR_MUTED);
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
-    int w = St7735_Width();
+    int w = St7789_Width();
 
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, hint, UI_COLOR_MUTED);
-    St7735_BlitRect(0, y + 4, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, y + 4, w, UI_LINE_H, buf);
 }
 
 static int Ui_Clamp(int v, int lo, int hi)
@@ -293,7 +338,7 @@ static int Ui_Clamp(int v, int lo, int hi)
 
 static int Ui_ListVisibleRows(void)
 {
-    int h = St7735_Height();
+    int h = St7789_Height();
     int top = UI_HEADER_H + UI_PAD_Y;
     int bottom = h - UI_FOOTER_H - UI_PAD_Y;
     int avail = bottom - top;
@@ -322,9 +367,56 @@ static int Ui_ListTopY(void) { return UI_HEADER_H + UI_PAD_Y; }
 static void Ui_ClearListAreaOnly(void)
 {
     int top = Ui_ListTopY();
-    int bottom = St7735_Height() - UI_FOOTER_H - UI_PAD_Y;
+    int bottom = St7789_Height() - UI_FOOTER_H - UI_PAD_Y;
     int h = bottom - top;
-    if (h > 0) St7735_FillRect(0, top, St7735_Width(), h, UI_COLOR_BG);
+    if (h > 0) St7789_FillRect(0, top, St7789_Width(), h, UI_COLOR_BG);
+}
+
+static const char* Ui_MainMenuTitle(const Experiment* exp)
+{
+    if (!exp) return "N/A";
+    if (exp->id == 13) return "SEESAW";
+    if (exp->id == 14) return "24 PUNTOS";
+    if (exp->id == 15) return "BALL";
+    return exp->title ? exp->title : "N/A";
+}
+
+static void Ui_DrawMainMenuTile(int i, int selected, int count, int start,
+                                int cols, int body_w, int col_w,
+                                uint16_t tile_bg_a, uint16_t tile_bg_b)
+{
+    int local = i - start;
+    int r = local / cols;
+    int c = local % cols;
+    int x = c * col_w;
+    int y = Ui_ListTopY() + r * UI_LINE_H;
+
+    int w = (c == cols - 1) ? (body_w - x) : col_w;
+    if (w < 1) w = 1;
+
+    uint16_t row_bg = ((r + c) & 1) ? tile_bg_b : tile_bg_a;
+    uint16_t fg = UI_COLOR_TEXT;
+    if (selected) {
+        row_bg = Ui_ColorRGB(250, 214, 74);
+        fg = Ui_ColorRGB(12, 26, 45);
+    }
+
+    Ui_LineBufInit(UI_LINE_H);
+    uint16_t* buf = Ui_LineBufNext();
+    LineBufFill(buf, w, UI_LINE_H, row_bg);
+
+    uint16_t bar = selected ? Ui_ColorRGB(236, 111, 24) : UI_COLOR_MUTED;
+    LineBufFillRect(buf, w, UI_LINE_H, 0, 0, 3, UI_LINE_H, bar);
+
+    if (i >= 0 && i < count) {
+        const Experiment* exp = Experiments_GetByIndex(i);
+        const char* title = Ui_MainMenuTitle(exp);
+        int text_x = 4;
+        int text_y = (UI_LINE_H - UI_FONT_H) / 2;
+        draw_text8x16_to_buf(buf, w, UI_LINE_H, text_x, text_y, title, fg);
+    }
+
+    St7789_BlitRect(x, y, w, UI_LINE_H, buf);
 }
 
 
@@ -333,31 +425,32 @@ void Ui_Init(void)
     if (!s_lcd_mutex) {
         s_lcd_mutex = xSemaphoreCreateMutex();
     }   
-    St7735_Init();
+    St7789_Init();
+    St7789_ApplyPanelDefaultProfile();
     ESP_LOGI(kUiTag, "Lamp color order = %d", (int)LAMP_COLOR_ORDER);
     Ui_LineBufInit(UI_LINE_H);
-    St7735_Fill(UI_COLOR_BG);
-    St7735_Flush();
+    St7789_Fill(UI_COLOR_BG);
+    St7789_Flush();
 }
 
 void Ui_Clear(void)
 {
     s_cursor_y = 0;
-    St7735_Fill(UI_COLOR_BG);
-    St7735_Flush();
+    St7789_Fill(UI_COLOR_BG);
+    St7789_Flush();
 }
 
 void Ui_Println(const char* s)
 {
     Ui_LineBufInit(UI_LINE_H);
 
-    int w = St7735_Width();
+    int w = St7789_Width();
     uint16_t* buf = Ui_LineBufNext();
 
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, s, UI_COLOR_TEXT);
 
-    St7735_BlitRect(0, s_cursor_y, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, s_cursor_y, w, UI_LINE_H, buf);
     s_cursor_y += UI_LINE_H;
 }
 
@@ -376,26 +469,20 @@ void Ui_Printf(const char* fmt, ...)
 // -----------------------------
 void Ui_DrawMainMenu(int index, int count)
 {
-    static bool s_inited = false;
-    static int s_last_index = -1;
-    static int s_last_start = -1;
-    static int s_last_count = -1;
-
     Ui_LcdLock();
 
     if (count < 0) count = 0;
 
     if (count == 0) {
-        if (!s_inited || s_last_count != 0) {
-            Ui_Clear();
-            Ui_DrawHeader("STEM");
-            Ui_DrawFooter("ENTER=OK   BACK=RET");
-            St7735_Flush();
-            s_inited = true;
-            s_last_count = 0;
-            s_last_index = 0;
-            s_last_start = 0;
-        }
+        Ui_Clear();
+        Ui_DrawHeader("STEM");
+        Ui_DrawFooter("UP/DN:SEL  OK:ENTER");
+        St7789_Flush();
+        s_mainmenu_cache_valid = true;
+        s_mainmenu_last_index = -1;
+        s_mainmenu_last_start = 0;
+        s_mainmenu_last_count = 0;
+        s_mainmenu_last_rows = Ui_ListVisibleRows();
         Ui_LcdUnlock();
         return;
     }
@@ -404,92 +491,63 @@ void Ui_DrawMainMenu(int index, int count)
     if (index >= count) index = count - 1;
 
     int rows = Ui_ListVisibleRows();
-    int start = Ui_ComputeWindowStart(index, count, rows);
+    int cols = 2;
+    int items_per_page = rows * cols;
+    if (items_per_page < 1) items_per_page = 1;
+    int start = (index / items_per_page) * items_per_page;
 
-    // Full rebuild
-    if (!s_inited || s_last_count != count) {
+    uint16_t tile_bg_a = Ui_ColorRGB(20, 48, 72);
+    uint16_t tile_bg_b = Ui_ColorRGB(26, 64, 44);
+
+    int body_w = St7789_Width();
+    int col_w = body_w / cols;
+    bool need_full = (!s_mainmenu_cache_valid ||
+                      s_mainmenu_last_count != count ||
+                      s_mainmenu_last_rows != rows ||
+                      s_mainmenu_last_start != start);
+
+    if (need_full) {
         Ui_Clear();
         Ui_DrawHeader("STEM");
         Ui_ClearListAreaOnly();
 
-        int y = Ui_ListTopY();
         for (int r = 0; r < rows; r++) {
-            int i = start + r;
-            if (i >= count) break;
-
-            const Experiment* exp = Experiments_GetByIndex(i);
-            const char* title = exp ? exp->title : "N/A";
-
-            char line[32];
-            snprintf(line, sizeof(line), "%2d  %s", i + 1, title);
-            Ui_DrawListRow(y, line, (i == index));
-            y += UI_LINE_H;
+            for (int c = 0; c < cols; c++) {
+                int i = start + r * cols + c;
+                Ui_DrawMainMenuTile(i, i == index, count, start, cols, body_w, col_w, tile_bg_a, tile_bg_b);
+            }
         }
 
-        Ui_DrawFooter("ENTER=OK   BACK=RET");
-        St7735_Flush();
+        int page = (start / items_per_page) + 1;
+        int pages = (count + items_per_page - 1) / items_per_page;
+        char hint[48];
+        snprintf(hint, sizeof(hint), "UD:LIST LR:COL OK %d/%d", page, pages);
+        Ui_DrawFooter(hint);
+        St7789_Flush();
 
-        s_inited = true;
-        s_last_count = count;
-        s_last_index = index;
-        s_last_start = start;
-
+        s_mainmenu_cache_valid = true;
+        s_mainmenu_last_count = count;
+        s_mainmenu_last_rows = rows;
+        s_mainmenu_last_start = start;
+        s_mainmenu_last_index = index;
         Ui_LcdUnlock();
         return;
     }
 
-    // Same window: only repaint old row + new row
-    if (start == s_last_start) {
-        if (index != s_last_index) {
-            if (s_last_index >= start && s_last_index < start + rows) {
-                int y0 = Ui_ListTopY() + (s_last_index - start) * UI_LINE_H;
-                const Experiment* e0 = Experiments_GetByIndex(s_last_index);
-                const char* t0 = e0 ? e0->title : "N/A";
-                char line0[32];
-                snprintf(line0, sizeof(line0), "%2d  %s", s_last_index + 1, t0);
-                Ui_DrawListRow(y0, line0, false);
+    if (index != s_mainmenu_last_index) {
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                int i = start + r * cols + c;
+                Ui_DrawMainMenuTile(i, i == index, count, start, cols, body_w, col_w, tile_bg_a, tile_bg_b);
             }
-            if (index >= start && index < start + rows) {
-                int y1 = Ui_ListTopY() + (index - start) * UI_LINE_H;
-                const Experiment* e1 = Experiments_GetByIndex(index);
-                const char* t1 = e1 ? e1->title : "N/A";
-                char line1[32];
-                snprintf(line1, sizeof(line1), "%2d  %s", index + 1, t1);
-                Ui_DrawListRow(y1, line1, true);
-            }
-
-            St7735_Flush();
-            s_last_index = index;
         }
-        Ui_LcdUnlock();
-        return;
+        St7789_Flush();
+        s_mainmenu_last_index = index;
     }
-
-    // Window changed: repaint visible window
-    Ui_ClearListAreaOnly();
-
-    int y = Ui_ListTopY();
-    for (int r = 0; r < rows; r++) {
-        int i = start + r;
-        if (i >= count) break;
-
-        const Experiment* exp = Experiments_GetByIndex(i);
-        const char* title = exp ? exp->title : "N/A";
-
-        char line[32];
-        snprintf(line, sizeof(line), "%2d  %s", i + 1, title);
-        Ui_DrawListRow(y, line, (i == index));
-        y += UI_LINE_H;
-    }
-
-    St7735_Flush();
-    s_last_index = index;
-    s_last_start = start;
-    s_last_count = count;
 
     Ui_LcdUnlock();
 }
-static const char* Ui_ExperimentTitleByIndex(int i)
+static __attribute__((unused)) const char* Ui_ExperimentTitleByIndex(int i)
 {
     const Experiment* e = Experiments_GetByIndex(i);
     return (e && e->title) ? e->title : "";
@@ -497,7 +555,7 @@ static const char* Ui_ExperimentTitleByIndex(int i)
 
 typedef const char* (*Ui_GetItemTextFn)(int index);
 
-static void Ui_DrawBodyList(int selected, int count, Ui_GetItemTextFn get_text)
+static __attribute__((unused)) void Ui_DrawBodyList(int selected, int count, Ui_GetItemTextFn get_text)
 {
     if (count < 0) count = 0;
     if (selected < 0) selected = 0;
@@ -526,10 +584,11 @@ static void Ui_DrawBodyList(int selected, int count, Ui_GetItemTextFn get_text)
 }
 void Ui_DrawFrame(const char* header_title, const char* footer_hint)
 {
+    Ui_MainMenuInvalidate();
     Ui_Clear();
     Ui_DrawHeader(header_title);
     Ui_DrawFooter(footer_hint);
-    St7735_Flush();
+    St7789_Flush();
 }
 
 uint16_t Ui_ColorRGB(uint8_t r, uint8_t g, uint8_t b)
@@ -540,9 +599,9 @@ uint16_t Ui_ColorRGB(uint8_t r, uint8_t g, uint8_t b)
 void Ui_DrawBodyClear(void)
 {
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
-    St7735_FillRect(0, body_y, St7735_Width(), body_h, UI_COLOR_BG);
-    St7735_Flush();
+    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
+    St7789_FillRect(0, body_y, St7789_Width(), body_h, UI_COLOR_BG);
+    Ui_MaybeFlush();
 }
 
 void Ui_DrawBodyTextRowColor(int row, const char* text, uint16_t fg)
@@ -551,7 +610,7 @@ void Ui_DrawBodyTextRowColor(int row, const char* text, uint16_t fg)
 
     int body_y = UI_HEADER_H + UI_PAD_Y;
     int y = body_y + row * UI_LINE_H;
-    int w = St7735_Width();
+    int w = St7789_Width();
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -559,8 +618,8 @@ void Ui_DrawBodyTextRowColor(int row, const char* text, uint16_t fg)
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, text ? text : "", fg);
 
-    St7735_BlitRect(0, y, w, UI_LINE_H, buf);
-    St7735_Flush();
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
+    Ui_MaybeFlush();
 }
 
 void Ui_DrawBodyTextRowTwoColor(int row, const char* left, const char* right,
@@ -570,7 +629,7 @@ void Ui_DrawBodyTextRowTwoColor(int row, const char* left, const char* right,
 
     int body_y = UI_HEADER_H + UI_PAD_Y;
     int y = body_y + row * UI_LINE_H;
-    int w = St7735_Width();
+    int w = St7789_Width();
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -585,8 +644,8 @@ void Ui_DrawBodyTextRowTwoColor(int row, const char* left, const char* right,
     int value_x = UI_PAD_X + value_col * (UI_FONT_W + UI_CHAR_GAP);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, value_x, 2, right ? right : "", right_fg);
 
-    St7735_BlitRect(0, y, w, UI_LINE_H, buf);
-    St7735_Flush();
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
+    Ui_MaybeFlush();
 }
 
 void Ui_DrawTextAt(int x, int y, const char* text, uint16_t fg)
@@ -604,48 +663,48 @@ void Ui_DrawTextAtBg(int x, int y, const char* text, uint16_t fg, uint16_t bg)
     if (len > 0) w -= UI_CHAR_GAP;
     if (w < UI_FONT_W) w = UI_FONT_W;
 
-    int max_w = St7735_Width() - x;
+    int max_w = St7789_Width() - x;
     if (max_w < 1) return;
     if (w > max_w) w = max_w;
-    if (w > 80) w = 80;
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
     LineBufFill(buf, w, UI_LINE_H, bg);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, 0, 2, text, fg);
-    St7735_BlitRect(x, y, w, UI_LINE_H, buf);
-    St7735_Flush();
+    St7789_BlitRect(x, y, w, UI_LINE_H, buf);
+    Ui_MaybeFlush();
 }
 void Ui_DrawExperimentRun(const char* title)
 {
     Ui_LcdLock();
+    Ui_MainMenuInvalidate();
 
     Ui_Clear();
     Ui_DrawHeader(title);
 
     Ui_Println("RUNNING...");
     Ui_DrawFooter("BACK=RET");
-    St7735_Flush();
+    St7789_Flush();
 
     Ui_LcdUnlock();
 }
 
 
-static int Ui_BodyCols(void)
+static __attribute__((unused)) int Ui_BodyCols(void)
 {
-    int cols = St7735_Width() / 8;
+    int cols = St7789_Width() / 8;
     if (cols < 8) cols = 8;
     return cols;
 }
 
-static int Ui_BodyRows(void)
+static __attribute__((unused)) int Ui_BodyRows(void)
 {
     int rows = Ui_ListVisibleRows();
     if (rows <= 0) rows = 1;
     return rows;
 }
 
-static const char* Ui_SkipWrappedLines(const char* text, int cols, int skip_lines)
+static __attribute__((unused)) const char* Ui_SkipWrappedLines(const char* text, int cols, int skip_lines)
 {
     const char* p = text;
     int line = 0;
@@ -665,37 +724,26 @@ static const char* Ui_SkipWrappedLines(const char* text, int cols, int skip_line
 
 static const char* Experiments_GetDescription(const Experiment* exp)
 {
-    if (!exp || !exp->title) return "No description.";
-
-    // Maze id is known: 12
-    if (exp->id == 12) {
-        return "MAZE\n"
-               "- Full screen mode.\n"
-               "- Use BACK to exit.\n";
-    }
-
-    // Avoid needing UART id: match by title
-    if (strcmp(exp->title, "UART") == 0) {
-        return "UART\n"
-               "- Connect TX/RX correctly.\n"
-               "- Use the same baud rate.\n"
-               "- Verify GND is common.\n";
-    }
-
-    return "No description.";
+    (void)exp;
+    return "No description.\n"
+           "Please implement\n"
+           "exp->show_requirements().";
 }
 
 void Ui_DrawExperimentMenu(const char* title, const Experiment* exp, int scroll_line)
 {
     Ui_LcdLock();
 
-    Ui_DrawFrame(title, "UP/DN: SCROLL  OK: ENTER  BACK: RETURN");
+    if (exp && exp->show_requirements) {
+        ExperimentContext dummy = (ExperimentContext){0};
+        exp->show_requirements(&dummy);
+    } else {
+        Ui_DrawFrame(title, "UP/DN: SCROLL  OK: ENTER  BACK: RETURN");
+        const char* text = Experiments_GetDescription(exp);
+        Ui_DrawWrappedTextBody(text, scroll_line);
+    }
 
-    int id = exp ? exp->id : -1;
-    const char* text = Experiments_GetDescription(exp);// you implement this mapping
-    Ui_DrawWrappedTextBody(text, scroll_line);             // you implement wrapped drawing
-
-    St7735_Flush();
+    St7789_Flush();
 
     Ui_LcdUnlock();
 }
@@ -703,8 +751,9 @@ void Ui_DrawExperimentMenu(const char* title, const Experiment* exp, int scroll_
 void Ui_DrawMazeFullScreen(void)
 {
     Ui_LcdLock();
+    Ui_MainMenuInvalidate();
     Ui_Clear();
-    St7735_Flush();
+    St7789_Flush();
     Ui_LcdUnlock();
 }
 
@@ -744,12 +793,12 @@ static void Ui_DrawListRowInRect(UiRect r, int y, const char* text, bool selecte
 
     draw_text8x16_to_buf(buf, w, h, UI_PAD_X, 2, text, row_fg);
 
-    St7735_BlitRect(r.x, y, w, h, buf);
+    St7789_BlitRect(r.x, y, w, h, buf);
 }
 
 static void Ui_DrawListRow(int y, const char* text, bool selected)
 {
-    UiRect r = { .x = 0, .y = 0, .w = St7735_Width(), .h = St7735_Height() };
+    UiRect r = { .x = 0, .y = 0, .w = St7789_Width(), .h = St7789_Height() };
     Ui_DrawListRowInRect(r, y, text, selected);
 }
 
@@ -829,7 +878,7 @@ static void Ui_DrawWrappedTextInRect(const char* text, int scroll_line, UiRect b
     if (!text) text = "";
 
     // Clear body
-    St7735_FillRect(body.x, body.y, body.w, body.h, UI_COLOR_BG);
+    St7789_FillRect(body.x, body.y, body.w, body.h, UI_COLOR_BG);
 
     int cols = Ui_RectCols(body);
 
@@ -855,12 +904,12 @@ static void Ui_DrawWrappedTextInRect(const char* text, int scroll_line, UiRect b
 
 static void Ui_DrawWrappedTextBody(const char* text, int scroll_line)
 {
-    UiRect body = { .x = 0, .y = UI_HEADER_H, .w = St7735_Width(),
-                    .h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H };
+    UiRect body = { .x = 0, .y = UI_HEADER_H, .w = St7789_Width(),
+                    .h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H };
     Ui_DrawWrappedTextInRect(text, scroll_line, body);
 }
 
-static void Ui_DrawGpioRow(int row, int selected,
+static __attribute__((unused)) void Ui_DrawGpioRow(int row, int selected,
                            const char* name, uint16_t color, bool on, int gpio_num,
                            int top, int row_h, int w)
 {
@@ -871,11 +920,11 @@ static void Ui_DrawGpioRow(int row, int selected,
     int ry = top + row * row_h;
 
     if (row == selected) {
-        St7735_FillRect(0, ry - 2, w, row_h, UI_COLOR_HILITE_BG);
+        St7789_FillRect(0, ry - 2, w, row_h, UI_COLOR_HILITE_BG);
     }
 
     uint16_t lamp_color = on ? color : UI_COLOR_MUTED;
-    St7735_FillRect(lamp_x, ry + 2, lamp, lamp, lamp_color);
+    St7789_FillRect(lamp_x, ry + 2, lamp, lamp, lamp_color);
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -888,7 +937,7 @@ static void Ui_DrawGpioRow(int row, int selected,
     uint16_t fg = (row == selected) ? UI_COLOR_HILITE_TX : UI_COLOR_TEXT;
     draw_text8x16_to_buf(buf, w, UI_LINE_H, text_x, 2, line, fg);
 
-    St7735_BlitRect(0, ry, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, ry, w, UI_LINE_H, buf);
 }
 
 
@@ -938,7 +987,7 @@ static void Ui_DrawLampIcon(int x, int y, int size, uint16_t fill, uint16_t outl
         }
     }
 
-    St7735_BlitRect(x, y, w, h, buf);
+    St7789_BlitRect(x, y, w, h, buf);
 }
 
 static uint16_t Ui_ColorScale(uint16_t rgb565, int pct)
@@ -960,12 +1009,12 @@ static uint16_t Ui_ColorScale(uint16_t rgb565, int pct)
 void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on)
 {
     // Body area: below header, above footer
-    int w = St7735_Width();
+    int w = St7789_Width();
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
+    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
 
     // Clear only body (not full screen)
-    St7735_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
+    St7789_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
 
     // Layout
     int row_h = UI_LINE_H + 8;
@@ -993,7 +1042,7 @@ void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on)
         uint16_t fg = (r == selected) ? UI_COLOR_HILITE_TX : UI_COLOR_TEXT;
 
         // Row background (full width)
-        St7735_FillRect(0, ry - 2, w, row_h, bg);
+        St7789_FillRect(0, ry - 2, w, row_h, bg);
 
         // Prepare text line buffer first (background + text)
         int label_w = Ui_LabelWidth(name);
@@ -1007,7 +1056,7 @@ void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on)
         snprintf(line, sizeof(line), "GPIO%-2d  [%s]", gpio_num, on ? "ON" : "OFF");
         draw_text8x16_to_buf(buf, w, UI_LINE_H, text_x, 2, line, fg);
 
-        St7735_BlitRect(0, ry, w, UI_LINE_H, buf);
+        St7789_BlitRect(0, ry, w, UI_LINE_H, buf);
 
         // Lamp image (colored icon) and label on top
         int ly = ry + (UI_LINE_H - lamp_size) / 2;
@@ -1022,11 +1071,11 @@ void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on)
 
 void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, int freq_hz)
 {
-    int w = St7735_Width();
+    int w = St7789_Width();
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
+    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
 
-    St7735_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
+    St7789_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
 
     int row_h = UI_LINE_H + 8;
     int top = UI_HEADER_H + 10;
@@ -1051,7 +1100,7 @@ void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, in
         uint16_t bg = (r == selected) ? UI_COLOR_HILITE_BG : UI_COLOR_BG;
         uint16_t fg = (r == selected) ? UI_COLOR_HILITE_TX : UI_COLOR_TEXT;
 
-        St7735_FillRect(0, ry - 2, w, row_h, bg);
+        St7789_FillRect(0, ry - 2, w, row_h, bg);
 
         int label_w = Ui_LabelWidth(name);
         int text_x = label_x + label_w + 6;
@@ -1065,7 +1114,7 @@ void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, in
         if (pct > 100) pct = 100;
         snprintf(line, sizeof(line), "PWM %3d%%", pct);
         draw_text8x16_to_buf(buf, w, UI_LINE_H, text_x, 2, line, fg);
-        St7735_BlitRect(0, ry, w, UI_LINE_H, buf);
+        St7789_BlitRect(0, ry, w, UI_LINE_H, buf);
 
         int ly = ry + (UI_LINE_H - lamp_size) / 2;
         uint16_t lamp_fill = (pct > 0) ? Ui_ColorScale(base, pct) : UI_COLOR_MUTED;
@@ -1077,10 +1126,10 @@ void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, in
 
         int bar_x = w - UI_PAD_X - bar_w;
         int bar_y = ry + (UI_LINE_H - bar_h) / 2;
-        St7735_FillRect(bar_x, bar_y, bar_w, bar_h, UI_COLOR_MUTED);
+        St7789_FillRect(bar_x, bar_y, bar_w, bar_h, UI_COLOR_MUTED);
         int fill_w = (bar_w * pct) / 100;
         if (fill_w > 0) {
-            St7735_FillRect(bar_x, bar_y, fill_w, bar_h, Ui_ColorScale(base, pct));
+            St7789_FillRect(bar_x, bar_y, fill_w, bar_h, Ui_ColorScale(base, pct));
         }
     }
 
@@ -1088,7 +1137,7 @@ void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, in
     uint16_t bg = (selected == 3) ? UI_COLOR_HILITE_BG : UI_COLOR_BG;
     uint16_t fg = (selected == 3) ? UI_COLOR_HILITE_TX : UI_COLOR_TEXT;
 
-    St7735_FillRect(0, ry - 2, w, row_h, bg);
+    St7789_FillRect(0, ry - 2, w, row_h, bg);
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -1097,18 +1146,18 @@ void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, in
     char line[48];
     snprintf(line, sizeof(line), "FREQ  %4d Hz", freq_hz);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, fg);
-    St7735_BlitRect(0, ry, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, ry, w, UI_LINE_H, buf);
 }
 
 void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
 {
-    int w = St7735_Width();
+    int w = St7789_Width();
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
+    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
 
     int text_y = body_y + UI_PAD_Y;
     // Clear only the text line area
-    St7735_FillRect(0, text_y, w, UI_LINE_H, UI_COLOR_BG);
+    St7789_FillRect(0, text_y, w, UI_LINE_H, UI_COLOR_BG);
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -1120,7 +1169,7 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
     char line[64];
     snprintf(line, sizeof(line), "FREQ %4d Hz   VOL %3d%%", freq_hz, vol_pct);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
-    St7735_BlitRect(0, text_y, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, text_y, w, UI_LINE_H, buf);
 
     int bar_h = 8;
     int bar_y = body_y + body_h - UI_PAD_Y - bar_h;
@@ -1152,9 +1201,9 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
         int fill_h = (spec_h * level) / 100;
         int y = spec_y1 - fill_h;
 
-        St7735_FillRect(x, spec_y0, bar_w, spec_h, UI_COLOR_MUTED);
+        St7789_FillRect(x, spec_y0, bar_w, spec_h, UI_COLOR_MUTED);
         if (fill_h > 0) {
-            St7735_FillRect(x, y, bar_w, fill_h, UI_COLOR_ACCENT);
+            St7789_FillRect(x, y, bar_w, fill_h, UI_COLOR_ACCENT);
         }
     }
 
@@ -1167,22 +1216,19 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
     buf = Ui_LineBufNext();
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "VOL", UI_COLOR_MUTED);
-    St7735_BlitRect(0, bar_y - 6, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, bar_y - 6, w, UI_LINE_H, buf);
 
-    St7735_FillRect(vol_bar_x, bar_y, vol_bar_w, bar_h, UI_COLOR_MUTED);
+    St7789_FillRect(vol_bar_x, bar_y, vol_bar_w, bar_h, UI_COLOR_MUTED);
     int fill_w = (vol_bar_w * vol_pct) / 100;
     if (fill_w > 0) {
-        St7735_FillRect(vol_bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
+        St7789_FillRect(vol_bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
     }
 }
 
-void Ui_DrawSpeakerBody(bool playing, int vol_pct)
+void Ui_DrawSpeakerBody(bool playing, int vol_pct, int progress_pct, uint32_t sample_rate_hz)
 {
-    int w = St7735_Width();
+    int w = St7789_Width();
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
-
-    St7735_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
 
     int y = body_y + UI_PAD_Y;
     Ui_LineBufInit(UI_LINE_H);
@@ -1192,44 +1238,75 @@ void Ui_DrawSpeakerBody(bool playing, int vol_pct)
     char line[48];
     snprintf(line, sizeof(line), "STATUS : %s", playing ? "PLAY" : "STOP");
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
-    St7735_BlitRect(0, y, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
     y += UI_LINE_H + 6;
 
     if (vol_pct < 0) vol_pct = 0;
     if (vol_pct > 100) vol_pct = 100;
+    if (progress_pct < 0) progress_pct = 0;
+    if (progress_pct > 100) progress_pct = 100;
 
     Ui_LineBufInit(UI_LINE_H);
     buf = Ui_LineBufNext();
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     snprintf(line, sizeof(line), "VOL    : %3d%%", vol_pct);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
-    St7735_BlitRect(0, y, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
 
     int bar_y = y + UI_LINE_H + 6;
     int bar_h = 10;
     int bar_w = w - (UI_PAD_X * 2);
     int bar_x = UI_PAD_X;
-    St7735_FillRect(bar_x, bar_y, bar_w, bar_h, UI_COLOR_MUTED);
+    St7789_FillRect(bar_x, bar_y, bar_w, bar_h, UI_COLOR_MUTED);
     int fill_w = (bar_w * vol_pct) / 100;
     if (fill_w > 0) {
-        St7735_FillRect(bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
+        St7789_FillRect(bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
     }
 
     y = bar_y + bar_h + 10;
     Ui_LineBufInit(UI_LINE_H);
     buf = Ui_LineBufNext();
     LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
+    snprintf(line, sizeof(line), "PROG   : %3d%%", progress_pct);
+    draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
+
+    int pbar_y = y + UI_LINE_H + 6;
+    int pbar_h = 10;
+    int pbar_w = w - (UI_PAD_X * 2);
+    int pbar_x = UI_PAD_X;
+    St7789_FillRect(pbar_x, pbar_y, pbar_w, pbar_h, UI_COLOR_MUTED);
+    int pfill_w = (pbar_w * progress_pct) / 100;
+    if (pfill_w > 0) {
+        St7789_FillRect(pbar_x, pbar_y, pfill_w, pbar_h, Ui_ColorRGB(92, 184, 92));
+    }
+
+    y = pbar_y + pbar_h + 10;
+    Ui_LineBufInit(UI_LINE_H);
+    buf = Ui_LineBufNext();
+    LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
+    if (sample_rate_hz == 22050U) {
+        draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "SRATE  : 22.05k", UI_COLOR_TEXT);
+    } else {
+        draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "SRATE  : 16k", UI_COLOR_TEXT);
+    }
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
+
+    y += UI_LINE_H + 4;
+    Ui_LineBufInit(UI_LINE_H);
+    buf = Ui_LineBufNext();
+    LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
     draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "Hola soy espanol.", UI_COLOR_TEXT);
-    St7735_BlitRect(0, y, w, UI_LINE_H, buf);
+    St7789_BlitRect(0, y, w, UI_LINE_H, buf);
 }
 
 void Ui_DrawColorTestBody(int selected, bool sw_invert, bool sw_rb_swap, bool hw_invert)
 {
-    int w = St7735_Width();
+    int w = St7789_Width();
     int body_y = UI_HEADER_H;
-    int body_h = St7735_Height() - UI_HEADER_H - UI_FOOTER_H;
+    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
 
-    St7735_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
+    St7789_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
 
     UiRect body = { .x = 0, .y = body_y, .w = w, .h = body_h };
 
@@ -1257,13 +1334,13 @@ void Ui_DrawColorTestBody(int selected, bool sw_invert, bool sw_rb_swap, bool hw
     int y0 = y;
     int y1 = y0 + size + 10;
 
-    St7735_FillRect(x0, y0, size, size, RGB565_RED);
-    St7735_FillRect(x1, y0, size, size, RGB565_GREEN);
-    St7735_FillRect(x2, y0, size, size, RGB565_BLUE);
+    St7789_FillRect(x0, y0, size, size, RGB565_RED);
+    St7789_FillRect(x1, y0, size, size, RGB565_GREEN);
+    St7789_FillRect(x2, y0, size, size, RGB565_BLUE);
 
-    St7735_FillRect(x0, y1, size, size, RGB565_YELLOW);
-    St7735_FillRect(x1, y1, size, size, RGB565_CYAN);
-    St7735_FillRect(x2, y1, size, size, RGB565_MAGENTA);
+    St7789_FillRect(x0, y1, size, size, RGB565_YELLOW);
+    St7789_FillRect(x1, y1, size, size, RGB565_CYAN);
+    St7789_FillRect(x2, y1, size, size, RGB565_MAGENTA);
 
     Ui_DrawLabelImage(x0 + 4, y0 + size + 2, "R", UI_COLOR_TEXT, UI_COLOR_BG);
     Ui_DrawLabelImage(x1 + 4, y0 + size + 2, "G", UI_COLOR_TEXT, UI_COLOR_BG);

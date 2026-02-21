@@ -92,6 +92,7 @@ static const uint8_t kLettersAZ[26][16] = {
 static const uint8_t kColon[16] = {0x00,0x00,0x18,0x18,0x00,0x00,0x00,0x00,0x18,0x18,0x00,0x00,0x00,0x00,0x00,0x00};
 static const uint8_t kDash[16]  = {0x00,0x00,0x00,0x00,0x00,0x00,0x7E,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 static const uint8_t kDot[16]   = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x18,0x18,0x00,0x00,0x00};
+static const uint8_t kPipe[16]  = {0x00,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x18,0x00,0x00,0x00};
 
 
 // Extra punctuation / symbols (8x16, each byte is one row, MSB is left pixel)
@@ -150,6 +151,43 @@ static const uint8_t kAt[16]={
     0x00,0x3C,0x66,0xC3,0xDB,0xDB,0xDB,0xDF,0xC0,0xC3,0x66,0x3C,0x00,0x00,0x00,0x00
 };
 
+static uint8_t kNoteMid[8][16];
+static uint8_t kNoteHigh[8][16];
+static uint8_t kNoteLow[8][16];
+static uint8_t s_note_glyphs_ready = 0;
+
+static void Font8x16_InitNoteGlyphs(void)
+{
+    if (s_note_glyphs_ready) return;
+
+    for (int d = 0; d <= 7; d++) {
+        const uint8_t* src = kDigits[d];
+        for (int r = 0; r < 16; r++) {
+            kNoteMid[d][r] = src[r];
+            kNoteHigh[d][r] = src[r];
+            kNoteLow[d][r] = src[r];
+        }
+
+        // High octave marker: centered 2x2 dot at top.
+        kNoteHigh[d][0] |= 0x18;
+        kNoteHigh[d][1] |= 0x18;
+
+        // Low octave marker: centered 2x2 dot at bottom.
+        kNoteLow[d][13] |= 0x18;
+        kNoteLow[d][14] |= 0x18;
+    }
+    s_note_glyphs_ready = 1;
+}
+
+const uint8_t* Font8x16_GetNumberedNoteGlyph(uint8_t degree, int8_t octave)
+{
+    Font8x16_InitNoteGlyphs();
+    if (degree > 7) degree = 0;
+    if (octave > 0) return kNoteHigh[degree];
+    if (octave < 0) return kNoteLow[degree];
+    return kNoteMid[degree];
+}
+
 const uint8_t* Font8x16_Get(char c)
 {
     // Normalize common whitespace
@@ -169,6 +207,7 @@ const uint8_t* Font8x16_Get(char c)
         case '-': return kDash;
         case '.': return kDot;
         case ':': return kColon;
+        case '|': return kPipe;
 
         case '"': return kQuote;
         case '\'': return kApost;

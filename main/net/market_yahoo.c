@@ -6,13 +6,15 @@
 
 #include "esp_log.h"
 #include "esp_http_client.h"
+#include "esp_crt_bundle.h"
 #include "cJSON.h"
 #include "esp_timer.h"
-#include "esp_crt_bundle.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
 static const char* TAG = "markets";
+static const int kMaxCaptureBytes = 8192;
+static const int kMaxRedirectDepth = 3;
 
 static MarketQuote* s_list = NULL;
 static int s_count = 0;
@@ -25,14 +27,19 @@ static uint32_t now_ms(void)
     return (uint32_t)(esp_timer_get_time() / 1000ULL);
 }
 
-static int http_get_all(const char* url, char** io_buf, int* io_cap, int* out_status)
+static int http_get_all_impl(const char* url, char** io_buf, int* io_cap, int* out_status, int depth)
 {
+    if (depth > kMaxRedirectDepth) return -1;
+    bool https = (strncmp(url, "https://", 8) == 0);
     esp_http_client_config_t cfg = {
         .url = url,
         .timeout_ms = 15000,
-        .transport_type = HTTP_TRANSPORT_OVER_SSL,
-        .crt_bundle_attach = esp_crt_bundle_attach,
-        .buffer_size = 4096,
+        .transport_type = https ? HTTP_TRANSPORT_OVER_SSL : HTTP_TRANSPORT_OVER_TCP,
+        .buffer_size = 1024,
+        .buffer_size_tx = 512,
+        .disable_auto_redirect = false,
+        .max_redirection_count = kMaxRedirectDepth,
+        .crt_bundle_attach = https ? esp_crt_bundle_attach : NULL,
     };
 
     esp_http_client_handle_t c = esp_http_client_init(&cfg);
@@ -58,10 +65,19 @@ static int http_get_all(const char* url, char** io_buf, int* io_cap, int* out_st
 
     int status = esp_http_client_get_status_code(c);
     if (out_status) *out_status = status;
+    if (status == 301 || status == 302 || status == 307 || status == 308) {
+        char* location = NULL;
+        if (esp_http_client_get_header(c, "Location", &location) == ESP_OK && location && location[0]) {
+            esp_http_client_close(c);
+            esp_http_client_cleanup(c);
+            return http_get_all_impl(location, io_buf, io_cap, out_status, depth + 1);
+        }
+    }
 
     int content_len = esp_http_client_get_content_length(c);
     if (content_len > 0) {
         int need = content_len + 1;
+        if (need > (kMaxCaptureBytes + 1)) need = kMaxCaptureBytes + 1;
         if (!*io_buf || !*io_cap || *io_cap < need) {
             char* nb = (char*)realloc(*io_buf, (size_t)need);
             if (!nb) {
@@ -89,9 +105,12 @@ static int http_get_all(const char* url, char** io_buf, int* io_cap, int* out_st
     uint32_t start_ms = now_ms();
     const uint32_t max_wait_ms = 12000;
     while (!esp_http_client_is_complete_data_received(c)) {
+        if (total >= kMaxCaptureBytes) break;
         int room = (*io_cap) - 1 - total;
         if (room <= 0) {
             int new_cap = (*io_cap) * 2;
+            if (new_cap > (kMaxCaptureBytes + 1)) new_cap = kMaxCaptureBytes + 1;
+            if (new_cap <= *io_cap) break;
             char* nb = (char*)realloc(*io_buf, (size_t)new_cap);
             if (!nb) break;
             *io_buf = nb;
@@ -122,6 +141,11 @@ static int http_get_all(const char* url, char** io_buf, int* io_cap, int* out_st
     esp_http_client_close(c);
     esp_http_client_cleanup(c);
     return total;
+}
+
+static int http_get_all(const char* url, char** io_buf, int* io_cap, int* out_status)
+{
+    return http_get_all_impl(url, io_buf, io_cap, out_status, 0);
 }
 
 static bool parse_quote(const char* json, float* out_price, float* out_chg_pct)

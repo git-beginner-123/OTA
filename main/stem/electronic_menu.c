@@ -47,7 +47,7 @@ static void DrawLine(int index, const char* text, bool selected)
     if (selected) {
         LCD_FillRect(0, y - 2, LCD_W, UI_LINE_H, COLOR_BLUE);
         LCD_DrawText(UI_LEFT, y, text, COLOR_WHITE, COLOR_BLUE);
-        LCD_DrawChar(2, y, '>', COLOR_WHITE, COLOR_BLUE); // 光标
+        LCD_DrawChar(2, y, '>', COLOR_WHITE, COLOR_BLUE); // cursor
     } else {
         LCD_DrawText(UI_LEFT, y, text, COLOR_BLACK, COLOR_WHITE);
     }

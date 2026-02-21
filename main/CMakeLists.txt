@@ -5,12 +5,17 @@ idf_component_register(
         "core/app.c"
         "core/app_state.c"
         "core/app_events.c"
+        "audio/sfx.c"
+        "audio/audio_engine.c"
+        "audio/audio_playback.c"
+        "drivers/audio_out.c"
+        "drivers/led_guard.c"
 
         "ui/ui_lcd.c"
         "ui/ui_console.c"
         "input/input_uart_frame.c"
 
-        "display/st7735.c"
+        "display/st7789.c"
         "display/font5x7.c"
         "display/font8x16.c"
         "experiments/experiments_registry.c"
@@ -27,7 +32,18 @@ idf_component_register(
         "experiments/exp_wifi_ap.c"
         "experiments/exp_wifi_sta.c"
         "experiments/exp_semaforo.c"
-        "experiments/exp_lcd_color.c"
+        "experiments/exp_seesaw.c"
+        "experiments/exp_math24.c"
+        "experiments/exp_ball.c"
+        "experiments/exp_solar.c"
+        "experiments/exp_rocket.c"
+        "experiments/exp_music.c"
+        "experiments/exp_snake.c"
+        "experiments/exp_numline.c"
+        "experiments/exp_fraction.c"
+        "experiments/exp_memory.c"
+        "experiments/exp_sudoku.c"
+        "experiments/exp_wifi_ota.c"
         "input/uart1_router.c"
         "input/drv_input_gpio_keys.c"
         "net/remote_web.c"
@@ -40,6 +56,8 @@ idf_component_register(
         "input"
         "display"
         "experiments"
+        "audio"
+        "drivers"
 
     EMBED_FILES
         "core/hola_es.pcm"
@@ -50,18 +68,24 @@ idf_component_register(
         esp_driver_gpio
         esp_driver_ledc
         esp_driver_i2s
+        esp_driver_jpeg
+        esp_adc
         driver
         freertos
         esp_system
         esp_common
+        app_update
         log
         esp_http_server
         esp_http_client
         esp_netif
         esp_event
         esp_wifi
+        wifi_provisioning
+        qrcode
         bt
         nvs_flash
+        spiffs
         mbedtls
         comm_wifi
         comm_ble

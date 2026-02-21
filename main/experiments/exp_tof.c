@@ -87,11 +87,12 @@ static void update_ui(void)
 static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
-    Ui_DrawFrame("TOF", "BACK=RET");
-    Ui_DrawBodyClear();
-    Ui_DrawBodyTextRowColor(0, "TRIG=GPIO39", Ui_ColorRGB(200, 200, 200));
-    Ui_DrawBodyTextRowColor(1, "ECHO=GPIO2", Ui_ColorRGB(200, 200, 200));
-    Ui_DrawBodyTextRowColor(2, "UNIT: CM", Ui_ColorRGB(200, 200, 200));
+    Ui_DrawFrame("TOF", "OK:START  BACK");
+    Ui_Println("Goal: measure distance.");
+    Ui_Println("TRIG -> GPIO39");
+    Ui_Println("ECHO -> GPIO2");
+    Ui_Println("Unit: centimeter.");
+    Ui_Println("Range view: 0~100cm.");
 }
 
 static void start(ExperimentContext* ctx)

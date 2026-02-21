@@ -2,18 +2,19 @@
 #include "ui/ui.h"
 #include "net/remote_web.h"
 #include "comm_wifi.h"
-#include "display/st7735.h"
+#include "display/st7789.h"
 #include <string.h>
 #include <stdio.h>
 
 static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
-    Ui_DrawFrame("WIFI AP", "BACK=RET");
-    Ui_DrawBodyClear();
-    Ui_DrawBodyTextRowColor(0, "SSID: ESP32_RC", Ui_ColorRGB(180, 220, 255));
-    Ui_DrawBodyTextRowColor(1, "IP: 192.168.4.1", Ui_ColorRGB(180, 220, 255));
-    Ui_DrawBodyTextRowColor(2, "HTTP: /", Ui_ColorRGB(200, 200, 200));
+    Ui_DrawFrame("WIFI AP", "OK:START  BACK");
+    Ui_Println("Goal: web remote control.");
+    Ui_Println("SSID: ESP32_RC");
+    Ui_Println("IP: 192.168.4.1");
+    Ui_Println("Open browser to '/'.");
+    Ui_Println("Use web buttons to send cmd.");
 }
 
 static bool s_display_on = true;
@@ -35,7 +36,7 @@ static void draw_screen(void)
 static void start(ExperimentContext* ctx)
 {
     (void)ctx;
-    comm_wifi_stop();
+    comm_wifi_start();
     s_display_on = true;
     s_screen_drawn = false;
     s_last_cmd[0] = 0;
@@ -72,8 +73,8 @@ static void tick(ExperimentContext* ctx)
     bool display_on = RemoteWeb_DisplayOn();
     if (!display_on && s_display_on) {
         s_display_on = false;
-        St7735_Fill(0x0000);
-        St7735_Flush();
+        St7789_Fill(0x0000);
+        St7789_Flush();
         return;
     }
 

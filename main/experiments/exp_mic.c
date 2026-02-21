@@ -163,11 +163,11 @@ static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
     Ui_DrawFrame("MIC", "OK:START  BACK");
-    Ui_Println("INMP441 I2S");
-    Ui_Println("WS  -> GPIO4");
-    Ui_Println("SCK -> GPIO5");
-    Ui_Println("SD  -> GPIO6");
-    Ui_Println("LR  -> GND (LEFT)");
+    Ui_Println("Goal: show volume + bands.");
+    Ui_Println("INMP441 I2S input.");
+    Ui_Println("WS->4  SCK->5  SD->6");
+    Ui_Println("LR pin -> GND (LEFT).");
+    Ui_Println("BACK to stop.");
 }
 
 static void on_enter(ExperimentContext* ctx)

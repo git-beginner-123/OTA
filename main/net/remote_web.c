@@ -1,21 +1,17 @@
 #include "remote_web.h"
+#include "comm_wifi.h"
 
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 #include "esp_log.h"
-#include "esp_wifi.h"
-#include "esp_netif.h"
-#include "esp_event.h"
 #include "esp_http_server.h"
-#include "nvs_flash.h"
 
 static const char* TAG = "remote_web";
+#define REMOTE_WEB_HTTPD_STACK_BYTES 3584
 
 static httpd_handle_t s_httpd = NULL;
-static esp_netif_t* s_ap_netif = NULL;
-static bool s_wifi_inited = false;
 
 static volatile RemoteCmd s_last_cmd = kRemoteCmdNone;
 static volatile bool s_display_on = true;
@@ -99,7 +95,7 @@ static bool web_start(void)
     if (s_httpd) return true;
 
     httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
-    cfg.stack_size = 4096;
+    cfg.stack_size = REMOTE_WEB_HTTPD_STACK_BYTES;
     cfg.max_uri_handlers = 8;
 
     if (httpd_start(&s_httpd, &cfg) != ESP_OK) {
@@ -138,46 +134,12 @@ static void web_stop(void)
 
 static bool ap_start(void)
 {
-    if (!s_wifi_inited) {
-        esp_err_t err = nvs_flash_init();
-        if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-            ESP_ERROR_CHECK(nvs_flash_erase());
-            ESP_ERROR_CHECK(nvs_flash_init());
-        }
-
-        ESP_ERROR_CHECK(esp_netif_init());
-
-        err = esp_event_loop_create_default();
-        if (err != ESP_OK && err != ESP_ERR_INVALID_STATE) {
-            ESP_ERROR_CHECK(err);
-        }
-
-        wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-        ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-        s_wifi_inited = true;
-    }
-
-    if (!s_ap_netif) {
-        s_ap_netif = esp_netif_create_default_wifi_ap();
-    }
-
-    wifi_config_t ap_cfg = {0};
-    strncpy((char*)ap_cfg.ap.ssid, "ESP32_RC", sizeof(ap_cfg.ap.ssid) - 1);
-    ap_cfg.ap.channel = 1;
-    ap_cfg.ap.max_connection = 4;
-    ap_cfg.ap.authmode = WIFI_AUTH_OPEN;
-
-    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_AP));
-    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_AP, &ap_cfg));
-    ESP_ERROR_CHECK(esp_wifi_start());
-
-    ESP_LOGI(TAG, "ap started SSID=ESP32_RC ip=192.168.4.1");
-    return true;
+    return comm_wifi_switch_to_ap_open("ESP32_RC");
 }
 
 static void ap_stop(void)
 {
-    esp_wifi_stop();
+    (void)comm_wifi_switch_to_sta_and_reconnect();
 }
 
 bool RemoteWeb_Start(void)

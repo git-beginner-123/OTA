@@ -26,9 +26,11 @@ static bool s_log_follow = true;
 static void draw_requirements(void)
 {
     Ui_DrawFrame("BLE", "OK: START  BACK");
-
-    Ui_Println("GOAL: Write -> +1 notify");
-    Ui_Println("NOTE: BLE enabled only in RUN");
+    Ui_Println("Goal: BLE notify demo.");
+    Ui_Println("Device advertises in RUN.");
+    Ui_Println("Write data from phone.");
+    Ui_Println("Board echoes/updates log.");
+    Ui_Println("DN/OK scroll log in run.");
 }
 static void ble_log_clear(void)
 {

@@ -15,6 +15,8 @@ void Ui_DrawMazeFullScreen(void);
 
 void Ui_LcdLock(void);
 void Ui_LcdUnlock(void);
+void Ui_BeginBatch(void);
+void Ui_EndBatch(void);
 
 void Ui_DrawFrame(const char* header_title, const char* footer_hint);
 void Ui_DrawBodyClear(void);
@@ -26,5 +28,5 @@ void Ui_DrawTextAtBg(int x, int y, const char* text, uint16_t fg, uint16_t bg);
 void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on);
 void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, int freq_hz);
 void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct);
-void Ui_DrawSpeakerBody(bool playing, int vol_pct);
+void Ui_DrawSpeakerBody(bool playing, int vol_pct, int progress_pct, uint32_t sample_rate_hz);
 void Ui_DrawColorTestBody(int selected, bool sw_invert, bool sw_rb_swap, bool hw_invert);

@@ -237,14 +237,13 @@ parser_reset();
 static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
-    Ui_Clear();
-    Ui_Println("UART Requirements");
-    Ui_Println("UART1 GPIO35/36");
-    Ui_Println("RX: BB LEN DATA SUM 66");
-    Ui_Println("SUM=sum(DATA)&0xFF");
-    Ui_Println("TX: invert(DATA) reply");
-    Ui_Println("");
-    Ui_Println("ENTER=CLR BACK=RET");
+    Ui_DrawFrame("UART", "OK:START  BACK");
+    Ui_Println("Goal: parse UART packet.");
+    Ui_Println("UART1 RX/TX: 35/36.");
+    Ui_Println("Frame: BB LEN DATA SUM 66.");
+    Ui_Println("SUM = sum(DATA)&0xFF.");
+    Ui_Println("Reply: invert(DATA).");
+    Ui_Println("ENTER clears counters.");
 }
 
 static void start(ExperimentContext* ctx)

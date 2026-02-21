@@ -7,9 +7,9 @@
 
 // -------------------- GPIO mapping --------------------
 
-#define PIN_RED    GPIO_NUM_13
+#define PIN_RED    GPIO_NUM_36
 #define PIN_GREEN  GPIO_NUM_14
-#define PIN_YELLOW GPIO_NUM_1
+#define PIN_YELLOW GPIO_NUM_13
 
 // -------------------- PWM config --------------------
 
@@ -31,6 +31,7 @@ static int s_sel = 0; // 0..3 (R,G,Y,FREQ)
 static int s_duty_pct[3] = { 50, 50, 50 };
 static int s_freq_hz = 1000;
 static bool s_ui_inited = false;
+static bool s_edit_mode = false;
 
 static int clamp_int(int v, int lo, int hi)
 {
@@ -95,7 +96,11 @@ static void pwm_stop_all(void)
 static void draw_full(void)
 {
     Ui_LcdLock();
-    Ui_DrawFrame("PWM", "UP:-  DN:NEXT  OK:+  BACK");
+    if (s_edit_mode) {
+        Ui_DrawFrame("PWM", "LT:-  RT:+  OK:DONE");
+    } else {
+        Ui_DrawFrame("PWM", "UP/DN:SEL  OK:EDIT");
+    }
     Ui_DrawPwmBody(s_sel, s_duty_pct[0], s_duty_pct[1], s_duty_pct[2], s_freq_hz);
     Ui_LcdUnlock();
 }
@@ -103,6 +108,11 @@ static void draw_full(void)
 static void draw_body(void)
 {
     Ui_LcdLock();
+    if (s_edit_mode) {
+        Ui_DrawFrame("PWM", "LT:-  RT:+  OK:DONE");
+    } else {
+        Ui_DrawFrame("PWM", "UP/DN:SEL  OK:EDIT");
+    }
     Ui_DrawPwmBody(s_sel, s_duty_pct[0], s_duty_pct[1], s_duty_pct[2], s_freq_hz);
     Ui_LcdUnlock();
 }
@@ -111,13 +121,13 @@ static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
     Ui_DrawFrame("PWM", "OK:START  BACK");
-    Ui_Println("PWM on 3 GPIOs");
-    Ui_Println("RED   -> GPIO13");
-    Ui_Println("GREEN -> GPIO14");
-    Ui_Println("YELLOW-> GPIO1");
-    Ui_Println("");
-    Ui_Println("DN select  UP:-  OK:+");
-    Ui_Println("R/G/Y=PWM  FREQ=HZ");
+    Ui_Println("Goal: dim LEDs by PWM.");
+    Ui_Println("RED/GRN/YEL on 36/14/13.");
+    Ui_Println("UP/DOWN: select item.");
+    Ui_Println("OK: enter/exit edit mode.");
+    Ui_Println("In edit: LEFT decrease.");
+    Ui_Println("In edit: RIGHT increase.");
+    Ui_Println("Items: R,G,Y duty + FREQ.");
 }
 
 static void on_enter(ExperimentContext* ctx)
@@ -130,6 +140,7 @@ static void on_enter(ExperimentContext* ctx)
     s_duty_pct[2] = 50;
     s_freq_hz = 1000;
     s_ui_inited = false;
+    s_edit_mode = false;
 }
 
 static void exp_on_exit(ExperimentContext* ctx)
@@ -144,6 +155,7 @@ static void start(ExperimentContext* ctx)
     (void)ctx;
     ESP_LOGI(TAG, "start");
     pwm_apply_all(true);
+    s_edit_mode = false;
     draw_full();
     s_ui_inited = true;
 }
@@ -165,18 +177,19 @@ static void on_key(ExperimentContext* ctx, InputKey key)
         s_sel = (s_sel + 1) % 4;
         changed = true;
     } else if (key == kInputUp) {
-        if (s_sel < 3) {
-            s_duty_pct[s_sel] = clamp_int(s_duty_pct[s_sel] - PWM_DUTY_STEP_PCT, 0, 100);
-        } else {
-            s_freq_hz = clamp_int(s_freq_hz - PWM_FREQ_STEP_HZ, PWM_FREQ_MIN_HZ, PWM_FREQ_MAX_HZ);
-        }
+        s_sel = (s_sel + 3) % 4;
         changed = true;
-        param_changed = true;
     } else if (key == kInputEnter) {
+        s_edit_mode = !s_edit_mode;
+        changed = true;
+    } else if (s_edit_mode && (key == kInputLeft || key == kInputRight)) {
+        bool increase = (key == kInputRight);
         if (s_sel < 3) {
-            s_duty_pct[s_sel] = clamp_int(s_duty_pct[s_sel] + PWM_DUTY_STEP_PCT, 0, 100);
+            int delta = increase ? PWM_DUTY_STEP_PCT : -PWM_DUTY_STEP_PCT;
+            s_duty_pct[s_sel] = clamp_int(s_duty_pct[s_sel] + delta, 0, 100);
         } else {
-            s_freq_hz = clamp_int(s_freq_hz + PWM_FREQ_STEP_HZ, PWM_FREQ_MIN_HZ, PWM_FREQ_MAX_HZ);
+            int delta = increase ? PWM_FREQ_STEP_HZ : -PWM_FREQ_STEP_HZ;
+            s_freq_hz = clamp_int(s_freq_hz + delta, PWM_FREQ_MIN_HZ, PWM_FREQ_MAX_HZ);
         }
         changed = true;
         param_changed = true;

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "driver/adc.h"
+#include "esp_adc/adc_oneshot.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 
@@ -13,7 +13,9 @@
 static const char* TAG = "EXP_ADC";
 
 static bool s_adc_ok = false;
-static adc2_channel_t s_adc_ch = ADC2_CHANNEL_6; // GPIO17 on ESP32-S3 ADC2
+static adc_oneshot_unit_handle_t s_adc_handle = NULL;
+static const adc_unit_t s_adc_unit = ADC_UNIT_2;
+static const adc_channel_t s_adc_ch = ADC_CHANNEL_6; // GPIO17 on ESP32-S3 ADC2
 
 static uint32_t s_next_ms = 0;
 static char s_line_raw[32];
@@ -26,9 +28,43 @@ static uint32_t now_ms(void)
 
 static void adc_init_once(void)
 {
-    // Legacy ADC API (no esp_driver_adc dependency)
-    adc2_config_channel_atten(s_adc_ch, ADC_ATTEN_DB_11);
+    if (s_adc_handle) {
+        s_adc_ok = true;
+        return;
+    }
+
+    adc_oneshot_unit_init_cfg_t unit_cfg = {
+        .unit_id = s_adc_unit,
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    if (adc_oneshot_new_unit(&unit_cfg, &s_adc_handle) != ESP_OK) {
+        ESP_LOGE(TAG, "adc_oneshot_new_unit failed");
+        s_adc_handle = NULL;
+        s_adc_ok = false;
+        return;
+    }
+
+    adc_oneshot_chan_cfg_t chan_cfg = {
+        .atten = ADC_ATTEN_DB_12,
+        .bitwidth = ADC_BITWIDTH_12,
+    };
+    if (adc_oneshot_config_channel(s_adc_handle, s_adc_ch, &chan_cfg) != ESP_OK) {
+        ESP_LOGE(TAG, "adc_oneshot_config_channel failed");
+        adc_oneshot_del_unit(s_adc_handle);
+        s_adc_handle = NULL;
+        s_adc_ok = false;
+        return;
+    }
+
     s_adc_ok = true;
+}
+
+static void adc_deinit(void)
+{
+    if (!s_adc_handle) return;
+    adc_oneshot_del_unit(s_adc_handle);
+    s_adc_handle = NULL;
+    s_adc_ok = false;
 }
 
 static void render_value(int raw)
@@ -56,10 +92,11 @@ static void render_value(int raw)
 static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
-    Ui_DrawFrame("ADC", "BACK=RET");
-    Ui_DrawBodyClear();
-    Ui_DrawBodyTextRowColor(0, "AO -> GPIO17", Ui_ColorRGB(200, 200, 200));
-    Ui_DrawBodyTextRowColor(1, "REFRESH: 10s", Ui_ColorRGB(200, 200, 200));
+    Ui_DrawFrame("ADC", "OK:START  BACK");
+    Ui_Println("Goal: read analog value.");
+    Ui_Println("Signal AO -> GPIO17.");
+    Ui_Println("Unit: raw + voltage.");
+    Ui_Println("Refresh: every 10 sec.");
 }
 
 static void start(ExperimentContext* ctx)
@@ -73,6 +110,12 @@ static void start(ExperimentContext* ctx)
     Ui_DrawFrame("ADC", "BACK=RET");
     Ui_DrawBodyClear();
     Ui_DrawBodyTextRowColor(0, "STATUS: RUN", Ui_ColorRGB(200, 200, 200));
+}
+
+static void stop(ExperimentContext* ctx)
+{
+    (void)ctx;
+    adc_deinit();
 }
 
 static void tick(ExperimentContext* ctx)
@@ -89,7 +132,7 @@ static void tick(ExperimentContext* ctx)
     }
 
     int raw = 0;
-    if (adc2_get_raw(s_adc_ch, ADC_WIDTH_BIT_12, &raw) != ESP_OK) {
+    if (!s_adc_handle || adc_oneshot_read(s_adc_handle, s_adc_ch, &raw) != ESP_OK) {
         Ui_DrawBodyTextRowColor(1, "READ ERROR", Ui_ColorRGB(255, 120, 120));
         return;
     }
@@ -104,7 +147,7 @@ const Experiment g_exp_adc = {
     .on_exit = 0,
     .show_requirements = show_requirements,
     .start = start,
-    .stop = 0,
+    .stop = stop,
     .on_key = 0,
     .tick = tick,
 };
