@@ -46,6 +46,9 @@ static volatile SystemState s_state = kStateSelectAp;
 static volatile int s_progress = 0;
 static bool s_ui_dirty = true;
 static char s_status[64] = "Select AP";
+static bool s_need_full_redraw = true;
+static uint32_t s_last_anim_ms = 0;
+static int s_anim_phase = 0;
 
 static CommWifiAp s_aps[3];
 static int s_ap_count = 0;
@@ -138,12 +141,79 @@ static const char* app_version(void)
 
 static void set_state(SystemState st, const char* status, int progress)
 {
+    SystemState prev = s_state;
+    bool dynamic_state = (st == kStateConnecting || st == kStateDownloading);
     s_state = st;
     s_progress = progress;
     if (!status) status = "";
     strncpy(s_status, status, sizeof(s_status) - 1);
     s_status[sizeof(s_status) - 1] = 0;
+    if (prev != st || !dynamic_state) {
+        s_need_full_redraw = true;
+        s_anim_phase = 0;
+    }
     s_ui_dirty = true;
+}
+
+static void draw_progress_bar(int pct, bool busy)
+{
+    // Keep geometry aligned with Ui body area constants in ui_lcd.c.
+    const int bar_x = 10;
+    const int bar_y = 206;
+    const int bar_w = 220;
+    const int bar_h = 14;
+    const uint16_t bg = Ui_ColorRGB(24, 28, 34);
+    const uint16_t fg = Ui_ColorRGB(70, 190, 255);
+    const uint16_t frame = Ui_ColorRGB(110, 130, 150);
+
+    if (pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+
+    St7789_FillRect(bar_x - 1, bar_y - 1, bar_w + 2, bar_h + 2, frame);
+    St7789_FillRect(bar_x, bar_y, bar_w, bar_h, bg);
+
+    if (busy && pct == 0) {
+        // Animated waiting segment before byte progress starts.
+        int seg_w = 36;
+        int max_x = bar_w - seg_w;
+        if (max_x < 1) max_x = 1;
+        int x = (s_anim_phase * 7) % max_x;
+        St7789_FillRect(bar_x + x, bar_y + 2, seg_w, bar_h - 4, fg);
+    } else {
+        int fill = (bar_w * pct) / 100;
+        if (fill > 0) St7789_FillRect(bar_x, bar_y + 2, fill, bar_h - 4, fg);
+    }
+}
+
+static void draw_status_dynamic_rows(void)
+{
+    char line[64];
+    char status_line[64];
+
+    if (s_state == kStateConnecting || s_state == kStateDownloading) {
+        const char spinner[] = "|/-\\";
+        int ph = s_anim_phase & 3;
+        snprintf(status_line, sizeof(status_line), "Status: %c %.52s", spinner[ph], s_status);
+    } else {
+        snprintf(status_line, sizeof(status_line), "Status: %.55s", s_status);
+    }
+
+    uint16_t status_color = c_text();
+    if (s_state == kStateFail) status_color = c_err();
+    else if (s_state == kStateSuccess) status_color = c_ok();
+    Ui_DrawBodyTextRowColor(3, status_line, status_color);
+
+    if (s_state == kStateDownloading) {
+        if (s_progress > 0) snprintf(line, sizeof(line), "Progress: %d%%", s_progress);
+        else snprintf(line, sizeof(line), "Progress: preparing...");
+        Ui_DrawBodyTextRowColor(4, line, c_text());
+        draw_progress_bar(s_progress, true);
+    } else if (s_state == kStateConnecting) {
+        Ui_DrawBodyTextRowColor(4, "Connecting / preparing OTA...", c_text());
+        draw_progress_bar(0, true);
+    } else {
+        Ui_DrawBodyTextRowColor(4, "URL: COMM_WIFI_OTA_URL", c_text());
+    }
 }
 
 static int pass_token_count(void)
@@ -590,12 +660,17 @@ static void draw_ui(void)
     char line[64];
     char masked[33] = {0};
 
-    Ui_DrawFrame(kSystemTitle, "UP/DN:SEL OK:SET BACK:RET");
-    Ui_DrawBodyClear();
+    if (s_need_full_redraw) {
+        Ui_DrawFrame(kSystemTitle, "UP/DN:SEL OK:SET BACK:RET");
+        Ui_DrawBodyClear();
+    }
 
-    snprintf(line, sizeof(line), "Version: %.44s", app_version());
-    Ui_DrawBodyTextRowColor(0, line, c_info());
-    Ui_DrawBodyTextRowColor(1, kSystemCopyright, c_info());
+    if (s_need_full_redraw) {
+        // Shorter label leaves more room for git-describe suffix.
+        snprintf(line, sizeof(line), "VER: %.58s", app_version());
+        Ui_DrawBodyTextRowColor(0, line, c_info());
+        Ui_DrawBodyTextRowColor(1, kSystemCopyright, c_info());
+    }
 
     if (s_state == kStateSelectAp) {
         Ui_DrawBodyTextRowColor(2, "AP List:", c_text());
@@ -640,20 +715,12 @@ static void draw_ui(void)
         return;
     }
 
-    snprintf(line, sizeof(line), "SSID: %s", s_sel_ssid[0] ? s_sel_ssid : "(none)");
-    Ui_DrawBodyTextRowColor(2, line, c_text());
-
-    snprintf(line, sizeof(line), "Status: %.55s", s_status);
-    if (s_state == kStateFail) Ui_DrawBodyTextRowColor(3, line, c_err());
-    else if (s_state == kStateSuccess) Ui_DrawBodyTextRowColor(3, line, c_ok());
-    else Ui_DrawBodyTextRowColor(3, line, c_text());
-
-    if (s_state == kStateDownloading) {
-        snprintf(line, sizeof(line), "Progress: %d%%", s_progress);
-        Ui_DrawBodyTextRowColor(4, line, c_text());
-    } else {
-        Ui_DrawBodyTextRowColor(4, "URL: COMM_WIFI_OTA_URL", c_text());
+    if (s_need_full_redraw) {
+        snprintf(line, sizeof(line), "SSID: %s", s_sel_ssid[0] ? s_sel_ssid : "(none)");
+        Ui_DrawBodyTextRowColor(2, line, c_text());
     }
+
+    draw_status_dynamic_rows();
 
     if (s_state == kStateConnecting && comm_wifi_is_connected()) {
         Ui_DrawBodyTextRowColor(5, "OK: start OTA  DN: forget WiFi", c_text());
@@ -662,6 +729,8 @@ static void draw_ui(void)
     if (s_state == kStateFail) {
         Ui_DrawBodyTextRowColor(5, "OK: rescan AP", c_text());
     }
+
+    s_need_full_redraw = false;
 }
 
 static void show_requirements(ExperimentContext* ctx)
@@ -691,6 +760,9 @@ static void start(ExperimentContext* ctx)
     s_qr_payload[0] = 0;
     strncpy(s_status, "Select AP", sizeof(s_status) - 1);
     s_status[sizeof(s_status) - 1] = 0;
+    s_need_full_redraw = true;
+    s_last_anim_ms = 0;
+    s_anim_phase = 0;
 
     comm_wifi_start();
     if (comm_wifi_is_connected()) {
@@ -827,6 +899,14 @@ static void on_key(ExperimentContext* ctx, InputKey key)
 static void tick(ExperimentContext* ctx)
 {
     (void)ctx;
+    uint32_t t = now_ms();
+    if (s_state == kStateConnecting || s_state == kStateDownloading) {
+        if ((t - s_last_anim_ms) >= 120U) {
+            s_last_anim_ms = t;
+            s_anim_phase++;
+            s_ui_dirty = true;
+        }
+    }
     if (!s_ui_dirty) return;
     draw_ui();
     s_ui_dirty = false;
