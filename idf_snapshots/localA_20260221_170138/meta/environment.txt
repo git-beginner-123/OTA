@@ -1,0 +1,59 @@
+### uname -a
+Linux linux 5.15.0-139-generic #149~20.04.1-Ubuntu SMP Wed Apr 16 08:29:56 UTC 2025 x86_64 x86_64 x86_64 GNU/Linux
+
+### os-release
+NAME="Ubuntu"
+VERSION="20.04.6 LTS (Focal Fossa)"
+ID=ubuntu
+ID_LIKE=debian
+PRETTY_NAME="Ubuntu 20.04.6 LTS"
+VERSION_ID="20.04"
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+VERSION_CODENAME=focal
+UBUNTU_CODENAME=focal
+
+### idf.py --version
+[command failed] idf.py --version
+[stderr]
+./idf_diff_snapshot.sh: line 37: idf.py: command not found
+
+### python3 --version
+Python 3.10.13
+
+### python --version
+Python 3.10.13
+
+### cmake --version
+cmake version 3.27.9
+
+CMake suite maintained and supported by Kitware (kitware.com/cmake).
+
+### ninja --version
+1.10.0
+
+### idf_tools.py --version
+[command failed] idf_tools.py --version
+[stderr]
+./idf_diff_snapshot.sh: line 37: idf_tools.py: command not found
+
+### IDF environment variables
+IDF_TOOLS_PATH=/home/wyp/.espressif
+
+### PATH
+/home/wyp/.local/bin:/home/wyp/bin:/home/wyp/.local/bin:/home/wyp/bin:/home/wyp/.codex/tmp/arg0/codex-arg0OCzL7y:/home/wyp/.vscode-server/cli/servers/Stable-072586267e68ece9a47aa43f8c108e0dcbf44622/server/bin/remote-cli:/home/wyp/.local/bin:/home/wyp/bin:/home/wyp/.pyenv/shims:/home/wyp/.pyenv/bin:/home/wyp/bin:/opt/cmake/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/home/wyp/.vscode-server/extensions/openai.chatgpt-0.5.76-linux-x64/bin/linux-x86_64
+
+### toolchain xtensa-esp32-elf-gcc
+[command failed] bash -lc command -v xtensa-esp32-elf-gcc && xtensa-esp32-elf-gcc --version | head -n 1
+
+### toolchain xtensa-esp32s2-elf-gcc
+[command failed] bash -lc command -v xtensa-esp32s2-elf-gcc && xtensa-esp32s2-elf-gcc --version | head -n 1
+
+### toolchain xtensa-esp32s3-elf-gcc
+[command failed] bash -lc command -v xtensa-esp32s3-elf-gcc && xtensa-esp32s3-elf-gcc --version | head -n 1
+
+### toolchain riscv32-esp-elf-gcc
+[command failed] bash -lc command -v riscv32-esp-elf-gcc && riscv32-esp-elf-gcc --version | head -n 1
+

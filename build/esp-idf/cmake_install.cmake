@@ -564,6 +564,11 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
+  include("/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
   include("/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/cmake_install.cmake")
 endif()
 

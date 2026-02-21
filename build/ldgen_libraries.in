@@ -161,8 +161,12 @@ $<TARGET_FILE:idf::touch_element>
 $<TARGET_FILE:idf::usb>
 $<TARGET_FILE:idf::wifi_provisioning>
 $<TARGET_FILE:__idf_json>
+$<TARGET_FILE:idf::espressif__qrcode>
 $<TARGET_FILE:idf::comm_wifi>
 $<TARGET_FILE:idf::comm_ble>
 $<TARGET_FILE:idf::main>
+$<TARGET_FILE:__idf_wifi_provisioning>
+$<TARGET_FILE:__idf_espressif__qrcode>
+$<TARGET_FILE:__idf_spiffs>
 $<TARGET_FILE:__idf_comm_wifi>
 $<TARGET_FILE:__idf_comm_ble>

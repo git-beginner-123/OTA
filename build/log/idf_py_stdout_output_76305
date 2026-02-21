@@ -1,0 +1,144 @@
+Command: /home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python /home/wyp/esp/esp-idf/tools/idf_monitor.py -p /dev/ttyUSB0 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 --revision 0 /home/wyp/esp/stem_framework_idf61_lcd/build/stem_framework_idf61_lcd.elf /home/wyp/esp/stem_framework_idf61_lcd/build/bootloader/bootloader.elf -m '/home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python' '/home/wyp/esp/esp-idf/tools/idf.py' '-p' '/dev/ttyUSB0'
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x28 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x158c
+load:0x403c8700,len:0xd24
+load:0x403cb700,len:0x2f34
+entry 0x403c8924
+[0;32mI (24) boot: ESP-IDF v5.5.2-dirty 2nd stage bootloader[0m
+[0;32mI (25) boot: compile time Feb 14 2026 18:27:44[0m
+[0;32mI (25) boot: Multicore bootloader[0m
+[0;32mI (26) boot: chip revision: v0.2[0m
+[0;32mI (28) boot: efuse block revision: v1.3[0m
+[0;32mI (32) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (36) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (39) boot.esp32s3: SPI Flash Size : 16MB[0m
+[0;32mI (43) boot: Enabling RNG early entropy source...[0m
+[0;32mI (48) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (57) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (63) boot:  1 phy_init         RF data          01 01 0000e000 00001000[0m
+[0;32mI (70) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (76) boot:  3 ota_0            OTA app          00 10 00210000 00200000[0m
+[0;32mI (83) boot:  4 ota_1            OTA app          00 11 00410000 00200000[0m
+[0;32mI (89) boot:  5 ota_data         OTA data         01 00 00610000 00002000[0m
+[0;32mI (96) boot:  6 spiffs           Unknown data     01 82 00612000 001ee000[0m
+[0;32mI (102) boot: End of partition table[0m
+[0;32mI (106) boot: Defaulting to factory image[0m
+[0;32mI (109) esp_image: segment 0: paddr=00010020 vaddr=3c130020 size=683b8h (426936) map[0m
+[0;32mI (192) esp_image: segment 1: paddr=000783e0 vaddr=3fca2600 size=05238h ( 21048) load[0m
+[0;32mI (197) esp_image: segment 2: paddr=0007d620 vaddr=40374000 size=029f8h ( 10744) load[0m
+[0;32mI (199) esp_image: segment 3: paddr=00080020 vaddr=42000020 size=12857ch (1213820) map[0m
+[0;32mI (418) esp_image: segment 4: paddr=001a85a4 vaddr=403769f8 size=1bbd4h (113620) load[0m
+[0;32mI (442) esp_image: segment 5: paddr=001c4180 vaddr=50000000 size=00020h (    32) load[0m
+[0;32mI (454) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (455) boot: Disabling RNG early entropy source...[0m
+[0;32mI (465) cpu_start: Multicore app[0m
+[0;32mI (473) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (474) cpu_start: Pro cpu start user code[0m
+[0;32mI (474) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (476) app_init: Application information:[0m
+[0;32mI (479) app_init: Project name:     stem_framework_idf61_lcd[0m
+[0;32mI (485) app_init: App version:      3156c78-dirty[0m
+[0;32mI (489) app_init: Compile time:     Feb 14 2026 18:27:50[0m
+[0;32mI (494) app_init: ELF file SHA256:  e2705da1a...[0m
+[0;32mI (499) app_init: ESP-IDF:          v5.5.2-dirty[0m
+[0;32mI (503) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (507) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (511) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (515) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (521) heap_init: At 3FCB5968 len 00033DA8 (207 KiB): RAM[0m
+[0;32mI (526) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (531) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (536) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (543) spi_flash: detected chip: boya[0m
+[0;32mI (545) spi_flash: flash io: dio[0m
+[0;32mI (549) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (554) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (561) coexist: coex firmware version: 7260f71[0m
+[0;32mI (565) coexist: coexist rom version e7ae62f[0m
+[0;32mI (570) main_task: Started on CPU0[0m
+[0;32mI (600) main_task: Calling app_main()[0m
+[0;32mI (630) BLE_INIT: BT controller compile version [5106725][0m
+[0;32mI (630) BLE_INIT: Using main XTAL as clock source[0m
+[0;32mI (630) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1[0m
+[0;32mI (640) BLE_INIT: Bluetooth MAC: 30:ed:a0:12:d7:5e[0m
+[0;32mI (640) phy_init: phy_version 711,97bcf0a2,Aug 25 2025,19:04:10[0m
+[0;32mI (680) phy_init: Saving new calibration data due to checksum failure or outdated calibration data, mode(0)[0m
+[0;32mI (770) comm_ble: gatts reg, app_id=0[0m
+[0;32mI (780) comm_ble: adv data set[0m
+[0;32mI (780) comm_ble: service created, handle=40[0m
+[0;32mI (780) comm_ble: char added, handle=42[0m
+[0;32mI (780) comm_ble: descr added, handle=43[0m
+[0;32mI (780) APP_MAIN: start[0m
+[0;32mI (780) pp: pp rom version: e7ae62f[0m
+[0;32mI (790) net80211: net80211 rom version: e7ae62f[0m
+[0;32mI (800) wifi:wifi driver task: 3fcc8408, prio:23, stack:6656, core=0[0m
+[0;32mI (810) wifi:wifi firmware version: ee91c8c[0m
+[0;32mI (810) wifi:wifi certification version: v7.0[0m
+[0;32mI (810) wifi:config NVS flash: enabled[0m
+[0;32mI (810) wifi:config nano formatting: disabled[0m
+[0;32mI (810) wifi:Init data frame dynamic rx buffer num: 32[0m
+[0;32mI (820) wifi:Init static rx mgmt buffer num: 5[0m
+[0;32mI (820) wifi:Init management short buffer num: 32[0m
+[0;32mI (830) wifi:Init dynamic tx buffer num: 32[0m
+[0;32mI (830) wifi:Init static tx FG buffer num: 2[0m
+[0;32mI (840) wifi:Init static rx buffer size: 1600[0m
+[0;32mI (840) wifi:Init static rx buffer num: 10[0m
+[0;32mI (840) wifi:Init dynamic rx buffer num: 32[0m
+[0;32mI (850) wifi_init: rx ba win: 6[0m
+[0;32mI (850) wifi_init: accept mbox: 6[0m
+[0;32mI (850) wifi_init: tcpip mbox: 32[0m
+[0;32mI (860) wifi_init: udp mbox: 6[0m
+[0;32mI (860) wifi_init: tcp mbox: 6[0m
+[0;32mI (860) wifi_init: tcp tx win: 5760[0m
+[0;32mI (870) wifi_init: tcp rx win: 5760[0m
+[0;32mI (870) wifi_init: tcp mss: 1440[0m
+[0;32mI (870) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (880) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;32mI (890) wifi:mode : sta (30:ed:a0:12:d7:5c)[0m
+[0;32mI (890) wifi:enable tsf[0m
+[0;32mI (890) comm_wifi: WiFi STA start requested (scan later)[0m
+[0;32mI (890) comm_wifi: WIFI_EVENT_STA_START[0m
+[0;32mI (890) wifi:Set ps type: 0, coexist: 0[0m
+
+[0;32mI (1360) ST7789: init done ctrl=ILI9341 spi=40000000 Hz, dma_q=3, dma_chunk=8192[0m
+[0;32mI (1360) UI_LCD: Lamp color order = 0[0m
+[1;31mE (1390) uart: UART driver already installed[0m
+[0;33mW (1390) uart: GPIO 35 is not usable, maybe used by others[0m
+[0;32mI (1390) UARTDBG: install=ESP_FAIL param=ESP_OK setpin=ESP_OK[0m
+[0;33mW (3310) comm_wifi: WIFI_EVENT_STA_DISCONNECTED reason=201 -> reconnect[0m
+[0;32mI (9650) APP_MEM: before_start exp=WIFI STA free8=99216 min8=98992 free_int=99216[0m
+[0;32mI (9660) wifi:Set ps type: 0, coexist: 0[0m
+
+[0;32mI (9660) wifi:flush txq[0m
+[0;32mI (9660) wifi:stop sw txq[0m
+[0;32mI (9660) wifi:lmac stop hw txq[0m
+[0;32mI (9670) wifi:mode : softAP (30:ed:a0:12:d7:5d)[0m
+[0;32mI (9670) wifi:Total power save buffer number: 16[0m
+[0;32mI (9670) wifi:Init max length of beacon: 752/752[0m
+[0;32mI (9670) wifi:Init max length of beacon: 752/752[0m
+[0;32mI (9680) esp_netif_lwip: DHCP server started on interface WIFI_AP_DEF with IP: 192.168.4.1[0m
+[0;32mI (9690) QRCODE: Encoding below text with ECC LVL 1 & QR Code Version 9[0m
+[0;32mI (9690) QRCODE: http://192.168.4.1[0m
+[0;32mI (9920) APP_MEM: after_start exp=WIFI STA free8=88504 min8=87760 free_int=88504[0m
+[0;32mI (15330) wifi:new:<1,0>, old:<1,1>, ap:<1,0>, sta:<255,255>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (15330) wifi:station: 72:03:ac:cc:92:92 join, AID=1, bgn, 20[0m
+[0;32mI (15440) wifi:<ba-add>idx:2 (ifx:1, 72:03:ac:cc:92:92), tid:0, ssn:0, winSize:64[0m
+[0;32mI (15640) esp_netif_lwip: DHCP server assigned IP to a client, IP is: 192.168.4.2[0m
+[0;32mI (49920) wifi:station: 72:03:ac:cc:92:92 leave, AID = 1, reason = 2, bss_flags is 33721443, bss:0x3fcddbd4[0m
+[0;32mI (49920) wifi:new:<1,0>, old:<1,0>, ap:<1,0>, sta:<255,255>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (49920) wifi:<ba-del>idx:2, tid:0[0m
+[0;32mI (49940) wifi:new:<1,1>, old:<1,0>, ap:<1,1>, sta:<255,255>, prof:1, snd_ch_cfg:0x0[0m
+[0;32mI (49940) wifi:mode : sta (30:ed:a0:12:d7:5c)[0m
+[0;32mI (49940) wifi:enable tsf[0m
+[0;32mI (49940) wifi:ieee80211_send_beacon mode switch cause ap destroyed[0m
+[0;32mI (49950) wifi:Set ps type: 0, coexist: 0[0m
+
+[0;32mI (49950) comm_wifi: WIFI_EVENT_STA_START[0m
+[0;33mW (50070) wifi:Password length matches WPA2 standards, authmode threshold changes from OPEN to WPA2[0m
+[0;33mW (52480) comm_wifi: WIFI_EVENT_STA_DISCONNECTED reason=201 -> reconnect[0m
+[0;33mW (54890) comm_wifi: WIFI_EVENT_STA_DISCONNECTED reason=201 -> reconnect[0m

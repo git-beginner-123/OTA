@@ -3,3 +3,4 @@
 0x10000 stem_framework_idf61_lcd.bin
 0x8000 partition_table/partition-table.bin
 0x610000 ota_data_initial.bin
+0x612000 spiffs.bin

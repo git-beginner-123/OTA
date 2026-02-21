@@ -1,0 +1,459 @@
+Command: /home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python /home/wyp/esp/esp-idf/tools/idf_monitor.py -p /dev/ttyUSB0 -b 115200 --toolchain-prefix xtensa-esp32s3-elf- --target esp32s3 --revision 0 /home/wyp/esp/stem_framework_idf61_lcd/build/stem_framework_idf61_lcd.elf /home/wyp/esp/stem_framework_idf61_lcd/build/bootloader/bootloader.elf -m '/home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python' '/home/wyp/esp/esp-idf/tools/idf.py' '-p' '/dev/ttyUSB0' '-b' '115200'
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x39 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce2820,len:0x158c
+load:0x403c8700,len:0xd24
+load:0x403cb700,len:0x2f34
+entry 0x403c8924
+[0;32mI (24) boot: ESP-IDF v5.5.2-dirty 2nd stage bootloader[0m
+[0;32mI (25) boot: compile time Feb 14 2026 18:27:44[0m
+[0;32mI (25) boot: Multicore bootloader[0m
+[0;32mI (26) boot: chip revision: v0.2[0m
+[0;32mI (28) boot: efuse block revision: v1.3[0m
+[0;32mI (32) boot.esp32s3: Boot SPI Speed : 80MHz[0m
+[0;32mI (36) boot.esp32s3: SPI Mode       : DIO[0m
+[0;32mI (39) boot.esp32s3: SPI Flash Size : 16MB[0m
+[0;32mI (43) boot: Enabling RNG early entropy source...[0m
+[0;32mI (48) boot: Partition Table:[0m
+[0;32mI (50) boot: ## Label            Usage          Type ST Offset   Length[0m
+[0;32mI (57) boot:  0 nvs              WiFi data        01 02 00009000 00005000[0m
+[0;32mI (63) boot:  1 phy_init         RF data          01 01 0000e000 00001000[0m
+[0;32mI (70) boot:  2 factory          factory app      00 00 00010000 00200000[0m
+[0;32mI (76) boot:  3 ota_0            OTA app          00 10 00210000 00200000[0m
+[0;32mI (83) boot:  4 ota_1            OTA app          00 11 00410000 00200000[0m
+[0;32mI (89) boot:  5 ota_data         OTA data         01 00 00610000 00002000[0m
+[0;32mI (96) boot:  6 spiffs           Unknown data     01 82 00612000 001ee000[0m
+[0;32mI (102) boot: End of partition table[0m
+[0;32mI (106) boot: Defaulting to factory image[0m
+[0;32mI (109) esp_image: segment 0: paddr=00010020 vaddr=3c130020 size=67810h (423952) map[0m
+[0;32mI (192) esp_image: segment 1: paddr=00077838 vaddr=3fca2600 size=05218h ( 21016) load[0m
+[0;32mI (196) esp_image: segment 2: paddr=0007ca58 vaddr=40374000 size=035c0h ( 13760) load[0m
+[0;32mI (200) esp_image: segment 3: paddr=00080020 vaddr=42000020 size=1260b0h (1204400) map[0m
+[0;32mI (415) esp_image: segment 4: paddr=001a60d8 vaddr=403775c0 size=1afd4h (110548) load[0m
+[0;32mI (440) esp_image: segment 5: paddr=001c10b4 vaddr=50000000 size=00020h (    32) load[0m
+[0;32mI (452) boot: Loaded app from partition at offset 0x10000[0m
+[0;32mI (452) boot: Disabling RNG early entropy source...[0m
+[0;32mI (462) cpu_start: Multicore app[0m
+[0;32mI (471) cpu_start: GPIO 44 and 43 are used as console UART I/O pins[0m
+[0;32mI (471) cpu_start: Pro cpu start user code[0m
+[0;32mI (471) cpu_start: cpu freq: 160000000 Hz[0m
+[0;32mI (473) app_init: Application information:[0m
+[0;32mI (477) app_init: Project name:     stem_framework_idf61_lcd[0m
+[0;32mI (482) app_init: App version:      3156c78-dirty[0m
+[0;32mI (486) app_init: Compile time:     Feb 14 2026 18:27:50[0m
+[0;32mI (492) app_init: ELF file SHA256:  6fa656798...[0m
+[0;32mI (496) app_init: ESP-IDF:          v5.5.2-dirty[0m
+[0;32mI (500) efuse_init: Min chip rev:     v0.0[0m
+[0;32mI (504) efuse_init: Max chip rev:     v0.99 [0m
+[0;32mI (508) efuse_init: Chip rev:         v0.2[0m
+[0;32mI (512) heap_init: Initializing. RAM available for dynamic allocation:[0m
+[0;32mI (518) heap_init: At 3FCBF690 len 0002A080 (168 KiB): RAM[0m
+[0;32mI (523) heap_init: At 3FCE9710 len 00005724 (21 KiB): RAM[0m
+[0;32mI (528) heap_init: At 3FCF0000 len 00008000 (32 KiB): DRAM[0m
+[0;32mI (534) heap_init: At 600FE000 len 00001FE8 (7 KiB): RTCRAM[0m
+[0;32mI (540) spi_flash: detected chip: boya[0m
+[0;32mI (542) spi_flash: flash io: dio[0m
+[0;32mI (546) sleep_gpio: Configure to isolate all GPIO pins in sleep state[0m
+[0;32mI (552) sleep_gpio: Enable automatic switching of GPIO sleep configuration[0m
+[0;32mI (558) coexist: coex firmware version: 7260f71[0m
+[0;32mI (563) coexist: coexist rom version e7ae62f[0m
+[0;32mI (567) main_task: Started on CPU0[0m
+[0;32mI (597) main_task: Calling app_main()[0m
+[0;32mI (627) BLE_INIT: BT controller compile version [5106725][0m
+[0;32mI (627) BLE_INIT: Using main XTAL as clock source[0m
+[0;32mI (627) BLE_INIT: Feature Config, ADV:1, BLE_50:1, DTM:1, SCAN:1, CCA:0, SMP:1, CONNECT:1[0m
+[0;32mI (627) BLE_INIT: Bluetooth MAC: 30:ed:a0:12:d7:5e[0m
+[0;32mI (637) phy_init: phy_version 711,97bcf0a2,Aug 25 2025,19:04:10[0m
+[0;32mI (697) comm_ble: gatts reg, app_id=0[0m
+[0;32mI (707) comm_ble: adv data set[0m
+[0;32mI (707) comm_ble: service created, handle=40[0m
+[0;32mI (707) comm_ble: char added, handle=42[0m
+[0;32mI (707) comm_ble: descr added, handle=43[0m
+[0;32mI (707) APP_MAIN: start[0m
+[0;32mI (707) pp: pp rom version: e7ae62f[0m
+[0;32mI (717) net80211: net80211 rom version: e7ae62f[0m
+[0;32mI (727) wifi:wifi driver task: 3fcd2148, prio:23, stack:6656, core=0[0m
+[0;32mI (737) wifi:wifi firmware version: ee91c8c[0m
+[0;32mI (737) wifi:wifi certification version: v7.0[0m
+[0;32mI (737) wifi:config NVS flash: enabled[0m
+[0;32mI (737) wifi:config nano formatting: disabled[0m
+[0;32mI (737) wifi:Init data frame dynamic rx buffer num: 32[0m
+[0;32mI (747) wifi:Init static rx mgmt buffer num: 5[0m
+[0;32mI (747) wifi:Init management short buffer num: 32[0m
+[0;32mI (757) wifi:Init dynamic tx buffer num: 32[0m
+[0;32mI (757) wifi:Init static tx FG buffer num: 2[0m
+[0;32mI (767) wifi:Init static rx buffer size: 1600[0m
+[0;32mI (767) wifi:Init static rx buffer num: 10[0m
+[0;32mI (767) wifi:Init dynamic rx buffer num: 32[0m
+[0;32mI (777) wifi_init: rx ba win: 6[0m
+[0;32mI (777) wifi_init: accept mbox: 6[0m
+[0;32mI (777) wifi_init: tcpip mbox: 32[0m
+[0;32mI (787) wifi_init: udp mbox: 6[0m
+[0;32mI (787) wifi_init: tcp mbox: 6[0m
+[0;32mI (787) wifi_init: tcp tx win: 5760[0m
+[0;32mI (787) wifi_init: tcp rx win: 5760[0m
+[0;32mI (797) wifi_init: tcp mss: 1440[0m
+[0;32mI (797) wifi_init: WiFi IRAM OP enabled[0m
+[0;32mI (797) wifi_init: WiFi RX IRAM OP enabled[0m
+[0;32mI (807) wifi:mode : sta (30:ed:a0:12:d7:5c)[0m
+[0;32mI (807) wifi:enable tsf[0m
+[0;32mI (817) comm_wifi: WiFi STA start requested (scan later)[0m
+[0;32mI (817) comm_wifi: WIFI_EVENT_STA_START[0m
+[0;32mI (817) wifi:Set ps type: 0, coexist: 0[0m
+
+[0;32mI (1347) ST7735: init done[0m
+[0;32mI (1347) UI_LCD: Lamp color order = 0[0m
+[1;31mE (1377) uart: UART driver already installed[0m
+[0;33mW (1377) uart: GPIO 35 is not usable, maybe used by others[0m
+[0;32mI (1377) UARTDBG: install=ESP_FAIL param=ESP_OK setpin=ESP_OK[0m
+[0;33mW (3237) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (5647) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (8067) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (10477) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (12887) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (15307) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (17717) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (20127) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (22547) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (24957) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (27377) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;32mI (28947) wifi:Set ps type: 0, coexist: 0[0m
+
+[1;31mE (28947) wifi:sta is connecting, return error[0m
+[0;32mI (31607) comm_wifi: scan: 32 APs[0m
+[0;32mI (31607) comm_wifi:   01) MiFibra-DC3D  RSSI=-53  SEC[0m
+[0;32mI (31607) comm_wifi:   02) DIGI_mzQH  RSSI=-56  SEC[0m
+[0;32mI (31607) comm_wifi:   03) DIGIFIBRA-dC7Q  RSSI=-68  SEC[0m
+[0;32mI (31607) comm_wifi:   04) sagemcom6198  RSSI=-77  SEC[0m
+[0;32mI (31617) comm_wifi:   05) MOVISTAR_BC70  RSSI=-78  SEC[0m
+[0;32mI (31617) comm_wifi:   06) DIGIFIBRA-6252  RSSI=-81  SEC[0m
+[0;32mI (31627) comm_wifi:   07) MOVISTAR_0720  RSSI=-82  SEC[0m
+[0;32mI (31627) comm_wifi:   08) Livebox7-AEAC  RSSI=-83  SEC[0m
+[0;32mI (31637) comm_wifi:   09) Livebox7-AEAC-WiFi7  RSSI=-83  SEC[0m
+[0;32mI (31637) comm_wifi:   10) vodafone8F30  RSSI=-84  SEC[0m
+[0;32mI (31647) comm_wifi:   11) DIGIFIBRA-DKu2  RSSI=-85  SEC[0m
+[0;32mI (31647) comm_wifi:   12)   RSSI=-85  SEC[0m
+[0;32mI (31657) comm_wifi:   13) DIGIFIBRA-hN3t  RSSI=-86  SEC[0m
+[0;32mI (31657) comm_wifi:   14)   RSSI=-86  SEC[0m
+[0;32mI (31667) comm_wifi:   15) MOVISTAR-WIFI6-C480  RSSI=-86  SEC[0m
+[0;32mI (31667) comm_wifi:   16) MOVISTAR_8F48  RSSI=-86  SEC[0m
+[0;32mI (31677) comm_wifi:   17) MOVISTAR-WIFI6-A340  RSSI=-87  SEC[0m
+[0;32mI (31677) comm_wifi:   18) MiFibra-E3D7  RSSI=-87  SEC[0m
+[0;32mI (31687) comm_wifi:   19) MIWIFI_bp3N  RSSI=-87  SEC[0m
+[0;32mI (31687) comm_wifi:   20) MOVISTAR_53AF  RSSI=-87  SEC[0m
+[0;32mI (31697) comm_wifi:   21) MiFibra-B033  RSSI=-88  SEC[0m
+[0;32mI (31697) comm_wifi:   22) CMADRID  RSSI=-88  SEC[0m
+[0;32mI (31707) comm_wifi:   23) DIGIFIBRA-NT2P  RSSI=-89  SEC[0m
+[0;32mI (31707) comm_wifi:   24)   RSSI=-89  SEC[0m
+[0;32mI (31707) comm_wifi:   25) sagemcom3720  RSSI=-90  SEC[0m
+[0;32mI (31717) comm_wifi:   26) DIGIFIBRA-DKu2-EXT  RSSI=-90  SEC[0m
+[0;32mI (31717) comm_wifi:   27) MiFibra-E6F0-24G  RSSI=-90  SEC[0m
+[0;32mI (31727) comm_wifi:   28) WEDU  RSSI=-90  OPEN[0m
+[0;32mI (31727) comm_wifi:   29) WEDU_DEV  RSSI=-91  SEC[0m
+[0;32mI (31737) comm_wifi:   30) DIGIFIBRA-xTg7  RSSI=-91  SEC[0m
+[0;32mI (31737) comm_wifi:   31) WEDU_PRIM  RSSI=-92  SEC[0m
+[0;32mI (31747) comm_wifi:   32) MOVISTAR_B17E  RSSI=-93  SEC[0m
+[0;32mI (31747) comm_wifi: APs top 3:[0m
+[0;32mI (31757) comm_wifi:   #1 MiFibra-DC3D  RSSI=-53[0m
+[0;32mI (31757) comm_wifi:   #2 DIGI_mzQH  RSSI=-56[0m
+[0;32mI (31757) comm_wifi:   #3 DIGIFIBRA-dC7Q  RSSI=-68[0m
+[0;33mW (34167) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (36577) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (38987) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (41407) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (43817) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (46227) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (48647) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (51057) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (53467) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (55887) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (58297) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (60717) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (63127) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (65537) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (67957) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (70367) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (72777) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (75197) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (77607) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (80017) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (82437) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (84847) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (87257) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (89677) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (92087) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (94507) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (96917) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (99327) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (101747) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (104157) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (106567) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (108987) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (111397) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (113807) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (116227) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (118637) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (121047) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (123467) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (125877) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (128297) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (130707) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (133117) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (135537) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (137947) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (140357) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (142777) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (145187) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (147597) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (150017) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (152427) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (154837) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (157257) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (159667) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (162087) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (164497) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (166907) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (169327) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (171737) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (174147) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (176567) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (178977) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (181387) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (183807) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (186217) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (188627) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (191047) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (193457) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (195867) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (198287) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (200697) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (203117) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (205527) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (207937) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (210357) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (212767) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (215177) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (217597) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (220007) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (222417) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (224837) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (227247) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (229657) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (232077) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (234487) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (236897) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (239317) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (241727) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (244147) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (246557) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (248967) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (251387) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (253797) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (256207) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (258627) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (261037) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (263447) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (265867) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (268277) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (270687) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (273107) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (275517) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (277927) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (280347) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (282757) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (285167) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (287587) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (289997) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (292417) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (294827) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (297237) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (299657) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (302067) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (304477) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (306897) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (309307) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (311717) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (314137) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (316547) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (318957) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (321377) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (323787) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (326197) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (328617) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (331027) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (333437) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (335857) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (338267) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (340687) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (343097) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (345507) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (347927) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (350337) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (352747) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (355167) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (357577) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (359987) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (362407) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (364817) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (367227) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (369647) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (372057) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (374477) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (376887) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (379297) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (381717) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (384127) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (386537) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (388957) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (391367) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (393777) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (396197) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (398607) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (401017) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (403437) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (405847) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (408257) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (410677) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (413087) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (415497) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (417917) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (420327) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (422737) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (425157) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (427567) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (429987) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (432397) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (434807) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (437227) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (439637) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (442047) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (444467) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (446877) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (449287) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (451707) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (454117) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (456527) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (458947) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (461357) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (463767) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (466187) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (468597) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (471007) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (473427) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (475837) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (478257) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (480667) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (483077) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (485497) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (487907) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (490317) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (492737) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (495147) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (497557) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (499977) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (502387) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (504797) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (507217) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (509627) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (512047) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (514457) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (516867) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (519287) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (521697) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (524107) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (526527) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (528937) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (531347) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (533767) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (536177) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (538587) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (541007) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (543417) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (545827) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (548247) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (550657) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (553067) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (555487) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (557897) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (560317) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (562727) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (565137) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (567557) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (569967) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (572377) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (574797) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (577207) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (579617) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (582037) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (584447) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (586857) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (589277) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (591687) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (594107) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (596517) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (598927) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (601347) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (603757) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (606167) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (608587) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (610997) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (613407) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (615827) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (618237) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (620647) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (623067) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (625477) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (627897) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (630307) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (632717) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (635137) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (637547) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (639957) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (642377) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (644787) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (647197) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (649617) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (652027) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (654437) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (656857) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (659267) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (661677) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (664097) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (666507) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (668917) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (671337) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (673747) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (676167) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (678577) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (680987) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (683407) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (685817) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (688227) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (690647) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (693057) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (695467) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (697887) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (700297) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (702707) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (705127) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (707537) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (709947) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (712367) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (714777) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (717197) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (719607) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (722017) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (724437) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (726847) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (729257) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (731677) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (734087) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (736497) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (738917) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (741327) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (743737) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (746157) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m
+[0;33mW (748567) comm_wifi: WIFI_EVENT_STA_DISCONNECTED -> reconnect[0m

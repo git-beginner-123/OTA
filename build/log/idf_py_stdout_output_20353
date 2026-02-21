@@ -1,0 +1,139 @@
+Command: ninja flash
+[1/6] Performing build step for 'bootloader'
+[1/1] cd /home/wyp/esp/stem_framework_idf61_lcd/build/bootloader/esp-idf/esptool_py && /home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python /home/wyp/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 bootloader 0x0 /home/wyp/esp/stem_framework_idf61_lcd/build/bootloader/bootloader.bin
+Bootloader binary size 0x5240 bytes. 0x2dc0 bytes (36%) free.
+[2/6] cd /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/esptool_py && /home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python /home/wyp/esp/esp-idf/components/partition_table/check_sizes.py --offset 0x8000 partition --type app /home/wyp/esp/stem_framework_idf61_lcd/build/partition_table/partition-table.bin /home/wyp/esp/stem_framework_idf61_lcd/build/stem_framework_idf61_lcd.bin
+stem_framework_idf61_lcd.bin binary size 0x1b34d0 bytes. Smallest app partition is 0x200000 bytes. 0x4cb30 bytes (15%) free.
+[3/6] No install step for 'bootloader'
+[4/6] Completed 'bootloader'
+[5/6] cd /home/wyp/esp/stem_framework_idf61_lcd/build && /home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python /home/wyp/esp/esp-idf/components/spiffs/spiffsgen.py 0x1ee000 /home/wyp/esp/stem_framework_idf61_lcd/build/spiffs_payload /home/wyp/esp/stem_framework_idf61_lcd/build/spiffs.bin --page-size=256 --obj-name-len=32 --meta-len=4 --use-magic --use-magic-len
+[5/6] cd /home/wyp/esp/esp-idf/components/esptool_py && /opt/cmake/bin/cmake -D IDF_PATH=/home/wyp/esp/esp-idf -D "SERIAL_TOOL=/home/wyp/.espressif/python_env/idf5.5_py3.10_env/bin/python;;/home/wyp/esp/esp-idf/components/esptool_py/esptool/esptool.py;--chip;esp32s3" -D "SERIAL_TOOL_ARGS=--before=default_reset;--after=hard_reset;write_flash;@flash_args" -D WORKING_DIRECTORY=/home/wyp/esp/stem_framework_idf61_lcd/build -P /home/wyp/esp/esp-idf/components/esptool_py/run_serial_tool.cmake
+esptool.py --chip esp32s3 -p /dev/ttyUSB0 -b 115200 --before=default_reset --after=hard_reset write_flash --flash_mode dio --flash_freq 80m --flash_size 16MB 0x0 bootloader/bootloader.bin 0x10000 stem_framework_idf61_lcd.bin 0x8000 partition_table/partition-table.bin 0x610000 ota_data_initial.bin 0x612000 spiffs.bin
+esptool.py v4.11.0
+Serial port /dev/ttyUSB0
+Connecting.....
+Chip is ESP32-S3 (QFN56) (revision v0.2)
+Features: WiFi, BLE, Embedded PSRAM 8MB (AP_3v3)
+Crystal is 40MHz
+MAC: 30:ed:a0:12:d7:5c
+Uploading stub...
+Running stub...
+Stub running...
+Configuring flash size...
+Flash will be erased from 0x00000000 to 0x00005fff...
+Flash will be erased from 0x00010000 to 0x001c3fff...
+Flash will be erased from 0x00008000 to 0x00008fff...
+Flash will be erased from 0x00610000 to 0x00611fff...
+Flash will be erased from 0x00612000 to 0x007fffff...
+SHA digest in image updated
+Compressed 21056 bytes to 13396...
+Writing at 0x00000000... (100 %)
+Wrote 21056 bytes (13396 compressed) at 0x00000000 in 1.5 seconds (effective 109.7 kbit/s)...
+Hash of data verified.
+Compressed 1782992 bytes to 1097245...
+Writing at 0x00010000... (1 %)
+Writing at 0x0001bcbd... (2 %)
+Writing at 0x0002a8a3... (4 %)
+Writing at 0x00038b11... (5 %)
+Writing at 0x00041538... (7 %)
+Writing at 0x000483b4... (8 %)
+Writing at 0x0004c8e7... (10 %)
+Writing at 0x000585b7... (11 %)
+Writing at 0x0005d20d... (13 %)
+Writing at 0x000620b9... (14 %)
+Writing at 0x00067519... (16 %)
+Writing at 0x0006f1b6... (17 %)
+Writing at 0x00079e2a... (19 %)
+Writing at 0x00082101... (20 %)
+Writing at 0x0008872e... (22 %)
+Writing at 0x0008ec63... (23 %)
+Writing at 0x00094a8a... (25 %)
+Writing at 0x0009a895... (26 %)
+Writing at 0x000a080e... (28 %)
+Writing at 0x000a67a9... (29 %)
+Writing at 0x000acc07... (31 %)
+Writing at 0x000b2b61... (32 %)
+Writing at 0x000b91d0... (34 %)
+Writing at 0x000bee4a... (35 %)
+Writing at 0x000c50e0... (37 %)
+Writing at 0x000cabcb... (38 %)
+Writing at 0x000d0a41... (40 %)
+Writing at 0x000d78cf... (41 %)
+Writing at 0x000ddb30... (43 %)
+Writing at 0x000e4088... (44 %)
+Writing at 0x000e9eb7... (46 %)
+Writing at 0x000f063d... (47 %)
+Writing at 0x000f68b8... (49 %)
+Writing at 0x000fc7a0... (50 %)
+Writing at 0x00102d00... (52 %)
+Writing at 0x00108a3e... (53 %)
+Writing at 0x0010e6d6... (55 %)
+Writing at 0x00114ba8... (56 %)
+Writing at 0x0011a96b... (58 %)
+Writing at 0x0012073e... (59 %)
+Writing at 0x00125aa1... (61 %)
+Writing at 0x0012a9ee... (62 %)
+Writing at 0x001302cc... (64 %)
+Writing at 0x00135b3a... (65 %)
+Writing at 0x0013b00b... (67 %)
+Writing at 0x00140445... (68 %)
+Writing at 0x00145b22... (70 %)
+Writing at 0x0014c2e3... (71 %)
+Writing at 0x00151d53... (73 %)
+Writing at 0x00157ab7... (74 %)
+Writing at 0x0015d7ca... (76 %)
+Writing at 0x00163064... (77 %)
+Writing at 0x00168c26... (79 %)
+Writing at 0x0016e959... (80 %)
+Writing at 0x00174cf8... (82 %)
+Writing at 0x0017a37d... (83 %)
+Writing at 0x0017ff55... (85 %)
+Writing at 0x001856be... (86 %)
+Writing at 0x0018b235... (88 %)
+Writing at 0x0019081f... (89 %)
+Writing at 0x0019989c... (91 %)
+Writing at 0x001a0662... (92 %)
+Writing at 0x001a62c0... (94 %)
+Writing at 0x001ac2e1... (95 %)
+Writing at 0x001b192f... (97 %)
+Writing at 0x001b7a77... (98 %)
+Writing at 0x001bda06... (100 %)
+Wrote 1782992 bytes (1097245 compressed) at 0x00010000 in 96.6 seconds (effective 147.6 kbit/s)...
+Hash of data verified.
+Compressed 3072 bytes to 153...
+Writing at 0x00008000... (100 %)
+Wrote 3072 bytes (153 compressed) at 0x00008000 in 0.1 seconds (effective 358.3 kbit/s)...
+Hash of data verified.
+Compressed 8192 bytes to 31...
+Writing at 0x00610000... (100 %)
+Wrote 8192 bytes (31 compressed) at 0x00610000 in 0.0 seconds (effective 1944.5 kbit/s)...
+Hash of data verified.
+Compressed 2023424 bytes to 370996...
+Writing at 0x00612000... (4 %)
+Writing at 0x006171ab... (8 %)
+Writing at 0x0061c3e1... (13 %)
+Writing at 0x006214cf... (17 %)
+Writing at 0x006266fb... (21 %)
+Writing at 0x0062b8b6... (26 %)
+Writing at 0x00630b0b... (30 %)
+Writing at 0x00635bbe... (34 %)
+Writing at 0x0063ae67... (39 %)
+Writing at 0x0063feeb... (43 %)
+Writing at 0x00645102... (47 %)
+Writing at 0x0064a32e... (52 %)
+Writing at 0x0064f406... (56 %)
+Writing at 0x006544d5... (60 %)
+Writing at 0x006595c6... (65 %)
+Writing at 0x0065e757... (69 %)
+Writing at 0x0066377d... (73 %)
+Writing at 0x00668a02... (78 %)
+Writing at 0x0066dcaa... (82 %)
+Writing at 0x00672cf4... (86 %)
+Writing at 0x00677d32... (91 %)
+Writing at 0x0067cdc4... (95 %)
+Writing at 0x00681df4... (100 %)
+Wrote 2023424 bytes (370996 compressed) at 0x00612000 in 36.8 seconds (effective 440.2 kbit/s)...
+Hash of data verified.
+
+Leaving...
+Hard resetting via RTS pin...

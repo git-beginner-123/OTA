@@ -1,0 +1,1210 @@
+### project git status
+3156c78c20930da54c28e4050e72ef8fac59f613
+ M CMakeLists.txt
+ M README.txt
+ M build/.bin_timestamp
+ M build/.ninja_deps
+ M build/.ninja_log
+ M build/CMakeCache.txt
+ M build/CMakeFiles/CMakeConfigureLog.yaml
+ M build/CMakeFiles/TargetDirectories.txt
+ M build/CMakeFiles/clean_additional.cmake
+ M build/CMakeFiles/rules.ninja
+ M build/bootloader/.bin_timestamp
+ M build/bootloader/.ninja_deps
+ M build/bootloader/.ninja_log
+ M build/bootloader/CMakeFiles/CMakeConfigureLog.yaml
+ M build/bootloader/bootloader.bin
+ M build/bootloader/bootloader.elf
+ M build/bootloader/build.ninja
+ M build/bootloader/esp-idf/esp_bootloader_format/CMakeFiles/__idf_esp_bootloader_format.dir/esp_bootloader_desc.c.obj
+ M build/bootloader/esp-idf/esp_bootloader_format/libesp_bootloader_format.a
+ M build/build.ninja
+ M build/compile_commands.json
+ M build/config/kconfig_menus.json
+ M build/config/sdkconfig.cmake
+ M build/config/sdkconfig.h
+ M build/config/sdkconfig.json
+ M build/esp-idf/cmake_install.cmake
+ M build/esp-idf/comm_wifi/CMakeFiles/__idf_comm_wifi.dir/comm_wifi.c.obj
+ M build/esp-idf/comm_wifi/libcomm_wifi.a
+ M build/esp-idf/esp_app_format/CMakeFiles/__idf_esp_app_format.dir/esp_app_desc.c.obj
+ M build/esp-idf/esp_app_format/libesp_app_format.a
+ M build/esp-idf/esp_bootloader_format/CMakeFiles/__idf_esp_bootloader_format.dir/esp_bootloader_desc.c.obj
+ M build/esp-idf/esp_bootloader_format/libesp_bootloader_format.a
+ M build/esp-idf/esptool_py/flasher_args.json.in
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/app_main.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/core/app.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/core/app_events.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/display/font8x16.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/display/st7735.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_adc.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_ble.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_gpio.c.obj
+ D build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_i2c.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_maze.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_mic.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_pwm.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_semaforo.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_speaker.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_uart.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_wifi_ap.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_wifi_sta.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/experiments_registry.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/input/drv_input_gpio_keys.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/input/input_uart_frame.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/input/uart1_router.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/net/remote_web.c.obj
+ D build/esp-idf/main/CMakeFiles/__idf_main.dir/net/stock_yahoo.c.obj
+ M build/esp-idf/main/CMakeFiles/__idf_main.dir/ui/ui_lcd.c.obj
+ M build/esp-idf/main/libmain.a
+ M build/flash_args
+ M build/flash_args.in
+ M build/flash_project_args
+ M build/flasher_args.json
+ M build/ldgen_libraries
+ M build/ldgen_libraries.in
+ D build/log/idf_py_stderr_output_10969
+ D build/log/idf_py_stderr_output_10992
+ D build/log/idf_py_stderr_output_11223
+ D build/log/idf_py_stderr_output_11272
+ D build/log/idf_py_stderr_output_11298
+ D build/log/idf_py_stderr_output_11721
+ D build/log/idf_py_stderr_output_11930
+ D build/log/idf_py_stderr_output_12136
+ D build/log/idf_py_stderr_output_12155
+ D build/log/idf_py_stderr_output_12595
+ D build/log/idf_py_stderr_output_12802
+ D build/log/idf_py_stderr_output_12842
+ D build/log/idf_py_stderr_output_12862
+ D build/log/idf_py_stderr_output_13255
+ D build/log/idf_py_stderr_output_13271
+ D build/log/idf_py_stderr_output_13477
+ D build/log/idf_py_stderr_output_13519
+ D build/log/idf_py_stderr_output_13538
+ D build/log/idf_py_stderr_output_13958
+ D build/log/idf_py_stderr_output_14164
+ D build/log/idf_py_stderr_output_14183
+ D build/log/idf_py_stderr_output_14631
+ D build/log/idf_py_stderr_output_14682
+ D build/log/idf_py_stderr_output_14888
+ D build/log/idf_py_stderr_output_14929
+ D build/log/idf_py_stderr_output_14950
+ D build/log/idf_py_stderr_output_1923
+ D build/log/idf_py_stderr_output_1945
+ D build/log/idf_py_stderr_output_2203
+ D build/log/idf_py_stderr_output_2753
+ D build/log/idf_py_stderr_output_2828
+ D build/log/idf_py_stderr_output_2898
+ D build/log/idf_py_stderr_output_2917
+ D build/log/idf_py_stderr_output_2948
+ D build/log/idf_py_stderr_output_2985
+ D build/log/idf_py_stderr_output_3002
+ D build/log/idf_py_stderr_output_3150
+ D build/log/idf_py_stderr_output_3169
+ D build/log/idf_py_stderr_output_3229
+ D build/log/idf_py_stderr_output_3712
+ D build/log/idf_py_stderr_output_3731
+ D build/log/idf_py_stderr_output_3787
+ D build/log/idf_py_stderr_output_3821
+ D build/log/idf_py_stderr_output_3873
+ D build/log/idf_py_stderr_output_3971
+ D build/log/idf_py_stderr_output_3994
+ D build/log/idf_py_stderr_output_4110
+ D build/log/idf_py_stderr_output_4129
+ D build/log/idf_py_stderr_output_4393
+ D build/log/idf_py_stderr_output_4442
+ D build/log/idf_py_stderr_output_4648
+ D build/log/idf_py_stderr_output_4653
+ D build/log/idf_py_stderr_output_4669
+ D build/log/idf_py_stderr_output_5138
+ D build/log/idf_py_stderr_output_5155
+ D build/log/idf_py_stderr_output_5362
+ D build/log/idf_py_stderr_output_5404
+ D build/log/idf_py_stderr_output_5471
+ D build/log/idf_py_stderr_output_5904
+ D build/log/idf_py_stderr_output_5970
+ D build/log/idf_py_stderr_output_6204
+ D build/log/idf_py_stderr_output_6246
+ D build/log/idf_py_stderr_output_6268
+ D build/log/idf_py_stderr_output_6685
+ D build/log/idf_py_stderr_output_6898
+ D build/log/idf_py_stderr_output_6917
+ D build/log/idf_py_stdout_output_10969
+ D build/log/idf_py_stdout_output_10992
+ D build/log/idf_py_stdout_output_11223
+ D build/log/idf_py_stdout_output_11272
+ D build/log/idf_py_stdout_output_11298
+ D build/log/idf_py_stdout_output_11721
+ D build/log/idf_py_stdout_output_11930
+ D build/log/idf_py_stdout_output_12136
+ D build/log/idf_py_stdout_output_12155
+ D build/log/idf_py_stdout_output_12595
+ D build/log/idf_py_stdout_output_12802
+ D build/log/idf_py_stdout_output_12842
+ D build/log/idf_py_stdout_output_12862
+ D build/log/idf_py_stdout_output_13255
+ D build/log/idf_py_stdout_output_13271
+ D build/log/idf_py_stdout_output_13477
+ D build/log/idf_py_stdout_output_13519
+ D build/log/idf_py_stdout_output_13538
+ D build/log/idf_py_stdout_output_13958
+ D build/log/idf_py_stdout_output_14164
+ D build/log/idf_py_stdout_output_14183
+ D build/log/idf_py_stdout_output_14631
+ D build/log/idf_py_stdout_output_14682
+ D build/log/idf_py_stdout_output_14888
+ D build/log/idf_py_stdout_output_14929
+ D build/log/idf_py_stdout_output_14950
+ D build/log/idf_py_stdout_output_1923
+ D build/log/idf_py_stdout_output_1945
+ M build/log/idf_py_stdout_output_2179
+ D build/log/idf_py_stdout_output_2203
+ D build/log/idf_py_stdout_output_2753
+ D build/log/idf_py_stdout_output_2828
+ D build/log/idf_py_stdout_output_2898
+ D build/log/idf_py_stdout_output_2917
+ D build/log/idf_py_stdout_output_2948
+ D build/log/idf_py_stdout_output_2985
+ D build/log/idf_py_stdout_output_3002
+ D build/log/idf_py_stdout_output_3150
+ D build/log/idf_py_stdout_output_3169
+ M build/log/idf_py_stdout_output_3208
+ D build/log/idf_py_stdout_output_3229
+ D build/log/idf_py_stdout_output_3712
+ D build/log/idf_py_stdout_output_3731
+ D build/log/idf_py_stdout_output_3787
+ D build/log/idf_py_stdout_output_3821
+ D build/log/idf_py_stdout_output_3873
+ D build/log/idf_py_stdout_output_3971
+ D build/log/idf_py_stdout_output_3994
+ D build/log/idf_py_stdout_output_4110
+ D build/log/idf_py_stdout_output_4129
+ D build/log/idf_py_stdout_output_4393
+ D build/log/idf_py_stdout_output_4442
+ D build/log/idf_py_stdout_output_4648
+ D build/log/idf_py_stdout_output_4653
+ D build/log/idf_py_stdout_output_4669
+ D build/log/idf_py_stdout_output_5138
+ D build/log/idf_py_stdout_output_5155
+ D build/log/idf_py_stdout_output_5362
+ D build/log/idf_py_stdout_output_5404
+ D build/log/idf_py_stdout_output_5471
+ D build/log/idf_py_stdout_output_5904
+ D build/log/idf_py_stdout_output_5970
+ D build/log/idf_py_stdout_output_6204
+ D build/log/idf_py_stdout_output_6246
+ D build/log/idf_py_stdout_output_6268
+ D build/log/idf_py_stdout_output_6685
+ D build/log/idf_py_stdout_output_6898
+ D build/log/idf_py_stdout_output_6917
+ M build/project_description.json
+ M build/stem_framework_idf61_lcd.bin
+ M build/stem_framework_idf61_lcd.elf
+ M build/stem_framework_idf61_lcd.map
+ M components/comm_wifi/Kconfig
+ M components/comm_wifi/comm_wifi.c
+ M components/comm_wifi/include/comm_wifi.h
+ M main/CMakeLists.txt
+ M main/app_main.c
+ M main/core/app.c
+ M main/core/app_events.h
+ M main/display/font8x16.c
+ M main/display/font8x16.h
+ D main/display/st7735.c
+ D main/display/st7735.h
+ M main/experiments/exp_adc.c
+ M main/experiments/exp_ble.c
+ M main/experiments/exp_gpio.c
+ D main/experiments/exp_lcd_color.c
+ M main/experiments/exp_maze.c
+ M main/experiments/exp_mic.c
+ M main/experiments/exp_pwm.c
+ M main/experiments/exp_remote.c
+ M main/experiments/exp_semaforo.c
+ M main/experiments/exp_speaker.c
+ M main/experiments/exp_tof.c
+ M main/experiments/exp_uart.c
+ M main/experiments/exp_wifi_ap.c
+ M main/experiments/exp_wifi_sta.c
+ M main/experiments/experiments_registry.c
+ M main/input/drv_input_gpio_keys.c
+ M main/input/drv_input_gpio_keys.h
+ M main/net/market_yahoo.c
+ M main/net/remote_web.c
+ M main/stem/electronic_menu.c
+ M main/ui/ui.h
+ M main/ui/ui_lcd.c
+ M sdkconfig
+ M sdkconfig.bak
+?? Lunar_Eclipse_Essentials_UPDATED_YouTube.webm
+?? MJPEG_OUT/
+?? annularGlow_4k_60fps_4-13-2023a_2160p60_2.mp4
+?? big_720p30.mp4
+?? build/esp-idf/espressif__qrcode/
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/__/
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/audio/
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/display/st7789.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/drivers/
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_ball.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_fraction.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_jianpu.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_math24.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_memory.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_music.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_numline.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_rocket.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_seesaw.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_snake.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_solar.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_sudoku.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_tof.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/experiments/exp_wifi_ota.c.obj
+?? build/esp-idf/main/CMakeFiles/__idf_main.dir/net/market_yahoo.c.obj
+?? build/hola_es.pcm.S
+?? build/log/idf_py_stderr_output_10021
+?? build/log/idf_py_stderr_output_10446
+?? build/log/idf_py_stderr_output_10646
+?? build/log/idf_py_stderr_output_10666
+?? build/log/idf_py_stderr_output_10722
+?? build/log/idf_py_stderr_output_10836
+?? build/log/idf_py_stderr_output_11275
+?? build/log/idf_py_stderr_output_11283
+?? build/log/idf_py_stderr_output_11290
+?? build/log/idf_py_stderr_output_11362
+?? build/log/idf_py_stderr_output_11441
+?? build/log/idf_py_stderr_output_11842
+?? build/log/idf_py_stderr_output_11960
+?? build/log/idf_py_stderr_output_12064
+?? build/log/idf_py_stderr_output_12200
+?? build/log/idf_py_stderr_output_12241
+?? build/log/idf_py_stderr_output_12530
+?? build/log/idf_py_stderr_output_12725
+?? build/log/idf_py_stderr_output_12947
+?? build/log/idf_py_stderr_output_13120
+?? build/log/idf_py_stderr_output_13283
+?? build/log/idf_py_stderr_output_13593
+?? build/log/idf_py_stderr_output_13612
+?? build/log/idf_py_stderr_output_13616
+?? build/log/idf_py_stderr_output_13742
+?? build/log/idf_py_stderr_output_13930
+?? build/log/idf_py_stderr_output_13959
+?? build/log/idf_py_stderr_output_13977
+?? build/log/idf_py_stderr_output_14001
+?? build/log/idf_py_stderr_output_14057
+?? build/log/idf_py_stderr_output_14173
+?? build/log/idf_py_stderr_output_14510
+?? build/log/idf_py_stderr_output_14663
+?? build/log/idf_py_stderr_output_14794
+?? build/log/idf_py_stderr_output_14923
+?? build/log/idf_py_stderr_output_14967
+?? build/log/idf_py_stderr_output_15088
+?? build/log/idf_py_stderr_output_15182
+?? build/log/idf_py_stderr_output_15261
+?? build/log/idf_py_stderr_output_15545
+?? build/log/idf_py_stderr_output_15943
+?? build/log/idf_py_stderr_output_15989
+?? build/log/idf_py_stderr_output_16132
+?? build/log/idf_py_stderr_output_16203
+?? build/log/idf_py_stderr_output_16268
+?? build/log/idf_py_stderr_output_16334
+?? build/log/idf_py_stderr_output_16531
+?? build/log/idf_py_stderr_output_16599
+?? build/log/idf_py_stderr_output_16636
+?? build/log/idf_py_stderr_output_16832
+?? build/log/idf_py_stderr_output_16858
+?? build/log/idf_py_stderr_output_17265
+?? build/log/idf_py_stderr_output_17426
+?? build/log/idf_py_stderr_output_17464
+?? build/log/idf_py_stderr_output_17482
+?? build/log/idf_py_stderr_output_17483
+?? build/log/idf_py_stderr_output_17548
+?? build/log/idf_py_stderr_output_17970
+?? build/log/idf_py_stderr_output_18155
+?? build/log/idf_py_stderr_output_18186
+?? build/log/idf_py_stderr_output_18202
+?? build/log/idf_py_stderr_output_18296
+?? build/log/idf_py_stderr_output_18589
+?? build/log/idf_py_stderr_output_18596
+?? build/log/idf_py_stderr_output_18601
+?? build/log/idf_py_stderr_output_18711
+?? build/log/idf_py_stderr_output_18811
+?? build/log/idf_py_stderr_output_18857
+?? build/log/idf_py_stderr_output_18946
+?? build/log/idf_py_stderr_output_19087
+?? build/log/idf_py_stderr_output_19131
+?? build/log/idf_py_stderr_output_19178
+?? build/log/idf_py_stderr_output_19241
+?? build/log/idf_py_stderr_output_1929
+?? build/log/idf_py_stderr_output_1938
+?? build/log/idf_py_stderr_output_19456
+?? build/log/idf_py_stderr_output_19641
+?? build/log/idf_py_stderr_output_19747
+?? build/log/idf_py_stderr_output_19909
+?? build/log/idf_py_stderr_output_20003
+?? build/log/idf_py_stderr_output_20147
+?? build/log/idf_py_stderr_output_20173
+?? build/log/idf_py_stderr_output_20353
+?? build/log/idf_py_stderr_output_20714
+?? build/log/idf_py_stderr_output_20800
+?? build/log/idf_py_stderr_output_20811
+?? build/log/idf_py_stderr_output_20979
+?? build/log/idf_py_stderr_output_20981
+?? build/log/idf_py_stderr_output_21026
+?? build/log/idf_py_stderr_output_21041
+?? build/log/idf_py_stderr_output_21240
+?? build/log/idf_py_stderr_output_21247
+?? build/log/idf_py_stderr_output_2147
+?? build/log/idf_py_stderr_output_21729
+?? build/log/idf_py_stderr_output_21767
+?? build/log/idf_py_stderr_output_21984
+?? build/log/idf_py_stderr_output_2202
+?? build/log/idf_py_stderr_output_22067
+?? build/log/idf_py_stderr_output_22133
+?? build/log/idf_py_stderr_output_22454
+?? build/log/idf_py_stderr_output_22676
+?? build/log/idf_py_stderr_output_23011
+?? build/log/idf_py_stderr_output_23219
+?? build/log/idf_py_stderr_output_23262
+?? build/log/idf_py_stderr_output_23456
+?? build/log/idf_py_stderr_output_23502
+?? build/log/idf_py_stderr_output_23812
+?? build/log/idf_py_stderr_output_23996
+?? build/log/idf_py_stderr_output_24103
+?? build/log/idf_py_stderr_output_24224
+?? build/log/idf_py_stderr_output_24234
+?? build/log/idf_py_stderr_output_24245
+?? build/log/idf_py_stderr_output_24273
+?? build/log/idf_py_stderr_output_24400
+?? build/log/idf_py_stderr_output_24504
+?? build/log/idf_py_stderr_output_24548
+?? build/log/idf_py_stderr_output_24801
+?? build/log/idf_py_stderr_output_2503
+?? build/log/idf_py_stderr_output_25152
+?? build/log/idf_py_stderr_output_25330
+?? build/log/idf_py_stderr_output_25340
+?? build/log/idf_py_stderr_output_25371
+?? build/log/idf_py_stderr_output_25531
+?? build/log/idf_py_stderr_output_25584
+?? build/log/idf_py_stderr_output_25805
+?? build/log/idf_py_stderr_output_25977
+?? build/log/idf_py_stderr_output_26206
+?? build/log/idf_py_stderr_output_26351
+?? build/log/idf_py_stderr_output_26523
+?? build/log/idf_py_stderr_output_26591
+?? build/log/idf_py_stderr_output_26813
+?? build/log/idf_py_stderr_output_2684
+?? build/log/idf_py_stderr_output_2690
+?? build/log/idf_py_stderr_output_26997
+?? build/log/idf_py_stderr_output_27120
+?? build/log/idf_py_stderr_output_2719
+?? build/log/idf_py_stderr_output_2741
+?? build/log/idf_py_stderr_output_27419
+?? build/log/idf_py_stderr_output_27432
+?? build/log/idf_py_stderr_output_27484
+?? build/log/idf_py_stderr_output_27501
+?? build/log/idf_py_stderr_output_27561
+?? build/log/idf_py_stderr_output_27590
+?? build/log/idf_py_stderr_output_27619
+?? build/log/idf_py_stderr_output_27635
+?? build/log/idf_py_stderr_output_27659
+?? build/log/idf_py_stderr_output_27778
+?? build/log/idf_py_stderr_output_27802
+?? build/log/idf_py_stderr_output_27814
+?? build/log/idf_py_stderr_output_27970
+?? build/log/idf_py_stderr_output_28011
+?? build/log/idf_py_stderr_output_28035
+?? build/log/idf_py_stderr_output_28113
+?? build/log/idf_py_stderr_output_28250
+?? build/log/idf_py_stderr_output_28267
+?? build/log/idf_py_stderr_output_28277
+?? build/log/idf_py_stderr_output_28295
+?? build/log/idf_py_stderr_output_28312
+?? build/log/idf_py_stderr_output_28345
+?? build/log/idf_py_stderr_output_28366
+?? build/log/idf_py_stderr_output_2838
+?? build/log/idf_py_stderr_output_28392
+?? build/log/idf_py_stderr_output_28398
+?? build/log/idf_py_stderr_output_28524
+?? build/log/idf_py_stderr_output_28562
+?? build/log/idf_py_stderr_output_28568
+?? build/log/idf_py_stderr_output_28579
+?? build/log/idf_py_stderr_output_28595
+?? build/log/idf_py_stderr_output_28683
+?? build/log/idf_py_stderr_output_28814
+?? build/log/idf_py_stderr_output_28892
+?? build/log/idf_py_stderr_output_28913
+?? build/log/idf_py_stderr_output_28927
+?? build/log/idf_py_stderr_output_29197
+?? build/log/idf_py_stderr_output_29279
+?? build/log/idf_py_stderr_output_29310
+?? build/log/idf_py_stderr_output_29331
+?? build/log/idf_py_stderr_output_29406
+?? build/log/idf_py_stderr_output_29428
+?? build/log/idf_py_stderr_output_29445
+?? build/log/idf_py_stderr_output_29481
+?? build/log/idf_py_stderr_output_29505
+?? build/log/idf_py_stderr_output_29773
+?? build/log/idf_py_stderr_output_29987
+?? build/log/idf_py_stderr_output_30008
+?? build/log/idf_py_stderr_output_3012
+?? build/log/idf_py_stderr_output_30302
+?? build/log/idf_py_stderr_output_30330
+?? build/log/idf_py_stderr_output_30441
+?? build/log/idf_py_stderr_output_30502
+?? build/log/idf_py_stderr_output_30512
+?? build/log/idf_py_stderr_output_30535
+?? build/log/idf_py_stderr_output_30843
+?? build/log/idf_py_stderr_output_30887
+?? build/log/idf_py_stderr_output_3101
+?? build/log/idf_py_stderr_output_31102
+?? build/log/idf_py_stderr_output_31141
+?? build/log/idf_py_stderr_output_31159
+?? build/log/idf_py_stderr_output_31183
+?? build/log/idf_py_stderr_output_31333
+?? build/log/idf_py_stderr_output_31474
+?? build/log/idf_py_stderr_output_31520
+?? build/log/idf_py_stderr_output_31685
+?? build/log/idf_py_stderr_output_31707
+?? build/log/idf_py_stderr_output_32006
+?? build/log/idf_py_stderr_output_32048
+?? build/log/idf_py_stderr_output_32216
+?? build/log/idf_py_stderr_output_32237
+?? build/log/idf_py_stderr_output_32289
+?? build/log/idf_py_stderr_output_32442
+?? build/log/idf_py_stderr_output_3248
+?? build/log/idf_py_stderr_output_32490
+?? build/log/idf_py_stderr_output_32533
+?? build/log/idf_py_stderr_output_3280
+?? build/log/idf_py_stderr_output_32936
+?? build/log/idf_py_stderr_output_32963
+?? build/log/idf_py_stderr_output_33230
+?? build/log/idf_py_stderr_output_33240
+?? build/log/idf_py_stderr_output_33252
+?? build/log/idf_py_stderr_output_3341
+?? build/log/idf_py_stderr_output_33441
+?? build/log/idf_py_stderr_output_33462
+?? build/log/idf_py_stderr_output_33484
+?? build/log/idf_py_stderr_output_33722
+?? build/log/idf_py_stderr_output_33785
+?? build/log/idf_py_stderr_output_33997
+?? build/log/idf_py_stderr_output_34019
+?? build/log/idf_py_stderr_output_3403
+?? build/log/idf_py_stderr_output_34126
+?? build/log/idf_py_stderr_output_34188
+?? build/log/idf_py_stderr_output_34314
+?? build/log/idf_py_stderr_output_34451
+?? build/log/idf_py_stderr_output_34523
+?? build/log/idf_py_stderr_output_34544
+?? build/log/idf_py_stderr_output_34834
+?? build/log/idf_py_stderr_output_35045
+?? build/log/idf_py_stderr_output_35066
+?? build/log/idf_py_stderr_output_35224
+?? build/log/idf_py_stderr_output_35336
+?? build/log/idf_py_stderr_output_35492
+?? build/log/idf_py_stderr_output_35496
+?? build/log/idf_py_stderr_output_35707
+?? build/log/idf_py_stderr_output_35729
+?? build/log/idf_py_stderr_output_35770
+?? build/log/idf_py_stderr_output_36036
+?? build/log/idf_py_stderr_output_36235
+?? build/log/idf_py_stderr_output_36245
+?? build/log/idf_py_stderr_output_36268
+?? build/log/idf_py_stderr_output_36548
+?? build/log/idf_py_stderr_output_36757
+?? build/log/idf_py_stderr_output_36778
+?? build/log/idf_py_stderr_output_37069
+?? build/log/idf_py_stderr_output_37278
+?? build/log/idf_py_stderr_output_37301
+?? build/log/idf_py_stderr_output_37406
+?? build/log/idf_py_stderr_output_3742
+?? build/log/idf_py_stderr_output_37498
+?? build/log/idf_py_stderr_output_37594
+?? build/log/idf_py_stderr_output_37667
+?? build/log/idf_py_stderr_output_3775
+?? build/log/idf_py_stderr_output_37804
+?? build/log/idf_py_stderr_output_37827
+?? build/log/idf_py_stderr_output_37833
+?? build/log/idf_py_stderr_output_38112
+?? build/log/idf_py_stderr_output_3822
+?? build/log/idf_py_stderr_output_38247
+?? build/log/idf_py_stderr_output_38321
+?? build/log/idf_py_stderr_output_38343
+?? build/log/idf_py_stderr_output_38616
+?? build/log/idf_py_stderr_output_38826
+?? build/log/idf_py_stderr_output_3884
+?? build/log/idf_py_stderr_output_38847
+?? build/log/idf_py_stderr_output_39075
+?? build/log/idf_py_stderr_output_39516
+?? build/log/idf_py_stderr_output_39929
+?? build/log/idf_py_stderr_output_40073
+?? build/log/idf_py_stderr_output_40267
+?? build/log/idf_py_stderr_output_40351
+?? build/log/idf_py_stderr_output_4044
+?? build/log/idf_py_stderr_output_4086
+?? build/log/idf_py_stderr_output_4094
+?? build/log/idf_py_stderr_output_40968
+?? build/log/idf_py_stderr_output_41234
+?? build/log/idf_py_stderr_output_41453
+?? build/log/idf_py_stderr_output_41870
+?? build/log/idf_py_stderr_output_4210
+?? build/log/idf_py_stderr_output_42110
+?? build/log/idf_py_stderr_output_42673
+?? build/log/idf_py_stderr_output_4292
+?? build/log/idf_py_stderr_output_4299
+?? build/log/idf_py_stderr_output_43277
+?? build/log/idf_py_stderr_output_43405
+?? build/log/idf_py_stderr_output_43783
+?? build/log/idf_py_stderr_output_4397
+?? build/log/idf_py_stderr_output_44169
+?? build/log/idf_py_stderr_output_44200
+?? build/log/idf_py_stderr_output_44996
+?? build/log/idf_py_stderr_output_4500
+?? build/log/idf_py_stderr_output_4513
+?? build/log/idf_py_stderr_output_45369
+?? build/log/idf_py_stderr_output_45578
+?? build/log/idf_py_stderr_output_4590
+?? build/log/idf_py_stderr_output_45901
+?? build/log/idf_py_stderr_output_46305
+?? build/log/idf_py_stderr_output_46318
+?? build/log/idf_py_stderr_output_47019
+?? build/log/idf_py_stderr_output_47164
+?? build/log/idf_py_stderr_output_47385
+?? build/log/idf_py_stderr_output_4744
+?? build/log/idf_py_stderr_output_47747
+?? build/log/idf_py_stderr_output_48104
+?? build/log/idf_py_stderr_output_48259
+?? build/log/idf_py_stderr_output_48506
+?? build/log/idf_py_stderr_output_49152
+?? build/log/idf_py_stderr_output_49392
+?? build/log/idf_py_stderr_output_4970
+?? build/log/idf_py_stderr_output_49788
+?? build/log/idf_py_stderr_output_50063
+?? build/log/idf_py_stderr_output_50078
+?? build/log/idf_py_stderr_output_50368
+?? build/log/idf_py_stderr_output_50792
+?? build/log/idf_py_stderr_output_50997
+?? build/log/idf_py_stderr_output_5128
+?? build/log/idf_py_stderr_output_51651
+?? build/log/idf_py_stderr_output_51936
+?? build/log/idf_py_stderr_output_52475
+?? build/log/idf_py_stderr_output_52597
+?? build/log/idf_py_stderr_output_5273
+?? build/log/idf_py_stderr_output_52787
+?? build/log/idf_py_stderr_output_53142
+?? build/log/idf_py_stderr_output_53190
+?? build/log/idf_py_stderr_output_54042
+?? build/log/idf_py_stderr_output_54356
+?? build/log/idf_py_stderr_output_5437
+?? build/log/idf_py_stderr_output_54709
+?? build/log/idf_py_stderr_output_54907
+?? build/log/idf_py_stderr_output_54989
+?? build/log/idf_py_stderr_output_55400
+?? build/log/idf_py_stderr_output_55482
+?? build/log/idf_py_stderr_output_55804
+?? build/log/idf_py_stderr_output_55846
+?? build/log/idf_py_stderr_output_5599
+?? build/log/idf_py_stderr_output_5635
+?? build/log/idf_py_stderr_output_56405
+?? build/log/idf_py_stderr_output_56643
+?? build/log/idf_py_stderr_output_5673
+?? build/log/idf_py_stderr_output_56991
+?? build/log/idf_py_stderr_output_57300
+?? build/log/idf_py_stderr_output_57388
+?? build/log/idf_py_stderr_output_58137
+?? build/log/idf_py_stderr_output_58469
+?? build/log/idf_py_stderr_output_58535
+?? build/log/idf_py_stderr_output_5919
+?? build/log/idf_py_stderr_output_59392
+?? build/log/idf_py_stderr_output_59398
+?? build/log/idf_py_stderr_output_60280
+?? build/log/idf_py_stderr_output_6043
+?? build/log/idf_py_stderr_output_60588
+?? build/log/idf_py_stderr_output_60687
+?? build/log/idf_py_stderr_output_60773
+?? build/log/idf_py_stderr_output_60853
+?? build/log/idf_py_stderr_output_61659
+?? build/log/idf_py_stderr_output_61734
+?? build/log/idf_py_stderr_output_62130
+?? build/log/idf_py_stderr_output_6251
+?? build/log/idf_py_stderr_output_62669
+?? build/log/idf_py_stderr_output_62718
+?? build/log/idf_py_stderr_output_62942
+?? build/log/idf_py_stderr_output_63135
+?? build/log/idf_py_stderr_output_6325
+?? build/log/idf_py_stderr_output_63856
+?? build/log/idf_py_stderr_output_64103
+?? build/log/idf_py_stderr_output_6443
+?? build/log/idf_py_stderr_output_64681
+?? build/log/idf_py_stderr_output_64906
+?? build/log/idf_py_stderr_output_65264
+?? build/log/idf_py_stderr_output_65598
+?? build/log/idf_py_stderr_output_65600
+?? build/log/idf_py_stderr_output_66003
+?? build/log/idf_py_stderr_output_6607
+?? build/log/idf_py_stderr_output_66196
+?? build/log/idf_py_stderr_output_66478
+?? build/log/idf_py_stderr_output_67390
+?? build/log/idf_py_stderr_output_67782
+?? build/log/idf_py_stderr_output_68499
+?? build/log/idf_py_stderr_output_68655
+?? build/log/idf_py_stderr_output_69444
+?? build/log/idf_py_stderr_output_6966
+?? build/log/idf_py_stderr_output_69712
+?? build/log/idf_py_stderr_output_70038
+?? build/log/idf_py_stderr_output_70620
+?? build/log/idf_py_stderr_output_71657
+?? build/log/idf_py_stderr_output_71939
+?? build/log/idf_py_stderr_output_7258
+?? build/log/idf_py_stderr_output_72832
+?? build/log/idf_py_stderr_output_73627
+?? build/log/idf_py_stderr_output_73644
+?? build/log/idf_py_stderr_output_73815
+?? build/log/idf_py_stderr_output_73961
+?? build/log/idf_py_stderr_output_74090
+?? build/log/idf_py_stderr_output_7442
+?? build/log/idf_py_stderr_output_7452
+?? build/log/idf_py_stderr_output_74712
+?? build/log/idf_py_stderr_output_74981
+?? build/log/idf_py_stderr_output_75299
+?? build/log/idf_py_stderr_output_75997
+?? build/log/idf_py_stderr_output_76092
+?? build/log/idf_py_stderr_output_76305
+?? build/log/idf_py_stderr_output_76393
+?? build/log/idf_py_stderr_output_7683
+?? build/log/idf_py_stderr_output_7720
+?? build/log/idf_py_stderr_output_77322
+?? build/log/idf_py_stderr_output_77329
+?? build/log/idf_py_stderr_output_77919
+?? build/log/idf_py_stderr_output_78272
+?? build/log/idf_py_stderr_output_78382
+?? build/log/idf_py_stderr_output_78673
+?? build/log/idf_py_stderr_output_7880
+?? build/log/idf_py_stderr_output_79110
+?? build/log/idf_py_stderr_output_79452
+?? build/log/idf_py_stderr_output_79659
+?? build/log/idf_py_stderr_output_80001
+?? build/log/idf_py_stderr_output_80370
+?? build/log/idf_py_stderr_output_80401
+?? build/log/idf_py_stderr_output_81423
+?? build/log/idf_py_stderr_output_81612
+?? build/log/idf_py_stderr_output_81711
+?? build/log/idf_py_stderr_output_82003
+?? build/log/idf_py_stderr_output_82600
+?? build/log/idf_py_stderr_output_82611
+?? build/log/idf_py_stderr_output_83009
+?? build/log/idf_py_stderr_output_8352
+?? build/log/idf_py_stderr_output_83811
+?? build/log/idf_py_stderr_output_84408
+?? build/log/idf_py_stderr_output_84720
+?? build/log/idf_py_stderr_output_85622
+?? build/log/idf_py_stderr_output_8589
+?? build/log/idf_py_stderr_output_8661
+?? build/log/idf_py_stderr_output_86710
+?? build/log/idf_py_stderr_output_87340
+?? build/log/idf_py_stderr_output_87650
+?? build/log/idf_py_stderr_output_8771
+?? build/log/idf_py_stderr_output_8827
+?? build/log/idf_py_stderr_output_88542
+?? build/log/idf_py_stderr_output_89664
+?? build/log/idf_py_stderr_output_9086
+?? build/log/idf_py_stderr_output_9410
+?? build/log/idf_py_stderr_output_9506
+?? build/log/idf_py_stderr_output_9624
+?? build/log/idf_py_stderr_output_9728
+?? build/log/idf_py_stderr_output_9757
+?? build/log/idf_py_stderr_output_9815
+?? build/log/idf_py_stderr_output_9841
+?? build/log/idf_py_stdout_output_10021
+?? build/log/idf_py_stdout_output_10446
+?? build/log/idf_py_stdout_output_10646
+?? build/log/idf_py_stdout_output_10666
+?? build/log/idf_py_stdout_output_10722
+?? build/log/idf_py_stdout_output_10836
+?? build/log/idf_py_stdout_output_11275
+?? build/log/idf_py_stdout_output_11283
+?? build/log/idf_py_stdout_output_11290
+?? build/log/idf_py_stdout_output_11362
+?? build/log/idf_py_stdout_output_11441
+?? build/log/idf_py_stdout_output_11842
+?? build/log/idf_py_stdout_output_11960
+?? build/log/idf_py_stdout_output_12064
+?? build/log/idf_py_stdout_output_12200
+?? build/log/idf_py_stdout_output_12241
+?? build/log/idf_py_stdout_output_12530
+?? build/log/idf_py_stdout_output_12725
+?? build/log/idf_py_stdout_output_12947
+?? build/log/idf_py_stdout_output_13120
+?? build/log/idf_py_stdout_output_13283
+?? build/log/idf_py_stdout_output_13593
+?? build/log/idf_py_stdout_output_13612
+?? build/log/idf_py_stdout_output_13616
+?? build/log/idf_py_stdout_output_13742
+?? build/log/idf_py_stdout_output_13930
+?? build/log/idf_py_stdout_output_13959
+?? build/log/idf_py_stdout_output_13977
+?? build/log/idf_py_stdout_output_14001
+?? build/log/idf_py_stdout_output_14057
+?? build/log/idf_py_stdout_output_14173
+?? build/log/idf_py_stdout_output_14510
+?? build/log/idf_py_stdout_output_14663
+?? build/log/idf_py_stdout_output_14794
+?? build/log/idf_py_stdout_output_14923
+?? build/log/idf_py_stdout_output_14967
+?? build/log/idf_py_stdout_output_15088
+?? build/log/idf_py_stdout_output_15182
+?? build/log/idf_py_stdout_output_15261
+?? build/log/idf_py_stdout_output_15545
+?? build/log/idf_py_stdout_output_15943
+?? build/log/idf_py_stdout_output_15989
+?? build/log/idf_py_stdout_output_16132
+?? build/log/idf_py_stdout_output_16203
+?? build/log/idf_py_stdout_output_16268
+?? build/log/idf_py_stdout_output_16334
+?? build/log/idf_py_stdout_output_16531
+?? build/log/idf_py_stdout_output_16599
+?? build/log/idf_py_stdout_output_16636
+?? build/log/idf_py_stdout_output_16832
+?? build/log/idf_py_stdout_output_16858
+?? build/log/idf_py_stdout_output_17265
+?? build/log/idf_py_stdout_output_17426
+?? build/log/idf_py_stdout_output_17464
+?? build/log/idf_py_stdout_output_17482
+?? build/log/idf_py_stdout_output_17483
+?? build/log/idf_py_stdout_output_17548
+?? build/log/idf_py_stdout_output_17970
+?? build/log/idf_py_stdout_output_18155
+?? build/log/idf_py_stdout_output_18186
+?? build/log/idf_py_stdout_output_18202
+?? build/log/idf_py_stdout_output_18296
+?? build/log/idf_py_stdout_output_18589
+?? build/log/idf_py_stdout_output_18596
+?? build/log/idf_py_stdout_output_18601
+?? build/log/idf_py_stdout_output_18711
+?? build/log/idf_py_stdout_output_18811
+?? build/log/idf_py_stdout_output_18857
+?? build/log/idf_py_stdout_output_18946
+?? build/log/idf_py_stdout_output_19087
+?? build/log/idf_py_stdout_output_19131
+?? build/log/idf_py_stdout_output_19178
+?? build/log/idf_py_stdout_output_19241
+?? build/log/idf_py_stdout_output_1929
+?? build/log/idf_py_stdout_output_1938
+?? build/log/idf_py_stdout_output_19456
+?? build/log/idf_py_stdout_output_19641
+?? build/log/idf_py_stdout_output_19747
+?? build/log/idf_py_stdout_output_19909
+?? build/log/idf_py_stdout_output_20003
+?? build/log/idf_py_stdout_output_20147
+?? build/log/idf_py_stdout_output_20173
+?? build/log/idf_py_stdout_output_20353
+?? build/log/idf_py_stdout_output_20714
+?? build/log/idf_py_stdout_output_20800
+?? build/log/idf_py_stdout_output_20811
+?? build/log/idf_py_stdout_output_20979
+?? build/log/idf_py_stdout_output_20981
+?? build/log/idf_py_stdout_output_21026
+?? build/log/idf_py_stdout_output_21041
+?? build/log/idf_py_stdout_output_21240
+?? build/log/idf_py_stdout_output_21247
+?? build/log/idf_py_stdout_output_2147
+?? build/log/idf_py_stdout_output_21729
+?? build/log/idf_py_stdout_output_21767
+?? build/log/idf_py_stdout_output_21984
+?? build/log/idf_py_stdout_output_2202
+?? build/log/idf_py_stdout_output_22067
+?? build/log/idf_py_stdout_output_22133
+?? build/log/idf_py_stdout_output_22454
+?? build/log/idf_py_stdout_output_22676
+?? build/log/idf_py_stdout_output_23011
+?? build/log/idf_py_stdout_output_23219
+?? build/log/idf_py_stdout_output_23262
+?? build/log/idf_py_stdout_output_23456
+?? build/log/idf_py_stdout_output_23502
+?? build/log/idf_py_stdout_output_23812
+?? build/log/idf_py_stdout_output_23996
+?? build/log/idf_py_stdout_output_24103
+?? build/log/idf_py_stdout_output_24224
+?? build/log/idf_py_stdout_output_24234
+?? build/log/idf_py_stdout_output_24245
+?? build/log/idf_py_stdout_output_24273
+?? build/log/idf_py_stdout_output_24400
+?? build/log/idf_py_stdout_output_24504
+?? build/log/idf_py_stdout_output_24548
+?? build/log/idf_py_stdout_output_24801
+?? build/log/idf_py_stdout_output_2503
+?? build/log/idf_py_stdout_output_25152
+?? build/log/idf_py_stdout_output_25330
+?? build/log/idf_py_stdout_output_25340
+?? build/log/idf_py_stdout_output_25371
+?? build/log/idf_py_stdout_output_25531
+?? build/log/idf_py_stdout_output_25584
+?? build/log/idf_py_stdout_output_25805
+?? build/log/idf_py_stdout_output_25977
+?? build/log/idf_py_stdout_output_26206
+?? build/log/idf_py_stdout_output_26351
+?? build/log/idf_py_stdout_output_26523
+?? build/log/idf_py_stdout_output_26591
+?? build/log/idf_py_stdout_output_26813
+?? build/log/idf_py_stdout_output_2684
+?? build/log/idf_py_stdout_output_2690
+?? build/log/idf_py_stdout_output_26997
+?? build/log/idf_py_stdout_output_27120
+?? build/log/idf_py_stdout_output_2719
+?? build/log/idf_py_stdout_output_2741
+?? build/log/idf_py_stdout_output_27419
+?? build/log/idf_py_stdout_output_27432
+?? build/log/idf_py_stdout_output_27484
+?? build/log/idf_py_stdout_output_27501
+?? build/log/idf_py_stdout_output_27561
+?? build/log/idf_py_stdout_output_27590
+?? build/log/idf_py_stdout_output_27619
+?? build/log/idf_py_stdout_output_27635
+?? build/log/idf_py_stdout_output_27659
+?? build/log/idf_py_stdout_output_27778
+?? build/log/idf_py_stdout_output_27802
+?? build/log/idf_py_stdout_output_27814
+?? build/log/idf_py_stdout_output_27970
+?? build/log/idf_py_stdout_output_28011
+?? build/log/idf_py_stdout_output_28035
+?? build/log/idf_py_stdout_output_28113
+?? build/log/idf_py_stdout_output_28250
+?? build/log/idf_py_stdout_output_28267
+?? build/log/idf_py_stdout_output_28277
+?? build/log/idf_py_stdout_output_28295
+?? build/log/idf_py_stdout_output_28312
+?? build/log/idf_py_stdout_output_28345
+?? build/log/idf_py_stdout_output_28366
+?? build/log/idf_py_stdout_output_2838
+?? build/log/idf_py_stdout_output_28392
+?? build/log/idf_py_stdout_output_28398
+?? build/log/idf_py_stdout_output_28524
+?? build/log/idf_py_stdout_output_28562
+?? build/log/idf_py_stdout_output_28568
+?? build/log/idf_py_stdout_output_28579
+?? build/log/idf_py_stdout_output_28595
+?? build/log/idf_py_stdout_output_28683
+?? build/log/idf_py_stdout_output_28814
+?? build/log/idf_py_stdout_output_28892
+?? build/log/idf_py_stdout_output_28913
+?? build/log/idf_py_stdout_output_28927
+?? build/log/idf_py_stdout_output_29197
+?? build/log/idf_py_stdout_output_29279
+?? build/log/idf_py_stdout_output_29310
+?? build/log/idf_py_stdout_output_29331
+?? build/log/idf_py_stdout_output_29406
+?? build/log/idf_py_stdout_output_29428
+?? build/log/idf_py_stdout_output_29445
+?? build/log/idf_py_stdout_output_29481
+?? build/log/idf_py_stdout_output_29505
+?? build/log/idf_py_stdout_output_29773
+?? build/log/idf_py_stdout_output_29987
+?? build/log/idf_py_stdout_output_30008
+?? build/log/idf_py_stdout_output_3012
+?? build/log/idf_py_stdout_output_30302
+?? build/log/idf_py_stdout_output_30330
+?? build/log/idf_py_stdout_output_30441
+?? build/log/idf_py_stdout_output_30502
+?? build/log/idf_py_stdout_output_30512
+?? build/log/idf_py_stdout_output_30535
+?? build/log/idf_py_stdout_output_30843
+?? build/log/idf_py_stdout_output_30887
+?? build/log/idf_py_stdout_output_3101
+?? build/log/idf_py_stdout_output_31102
+?? build/log/idf_py_stdout_output_31141
+?? build/log/idf_py_stdout_output_31159
+?? build/log/idf_py_stdout_output_31183
+?? build/log/idf_py_stdout_output_31333
+?? build/log/idf_py_stdout_output_31474
+?? build/log/idf_py_stdout_output_31520
+?? build/log/idf_py_stdout_output_31685
+?? build/log/idf_py_stdout_output_31707
+?? build/log/idf_py_stdout_output_32006
+?? build/log/idf_py_stdout_output_32048
+?? build/log/idf_py_stdout_output_32216
+?? build/log/idf_py_stdout_output_32237
+?? build/log/idf_py_stdout_output_32289
+?? build/log/idf_py_stdout_output_32442
+?? build/log/idf_py_stdout_output_3248
+?? build/log/idf_py_stdout_output_32490
+?? build/log/idf_py_stdout_output_32533
+?? build/log/idf_py_stdout_output_3280
+?? build/log/idf_py_stdout_output_32936
+?? build/log/idf_py_stdout_output_32963
+?? build/log/idf_py_stdout_output_33230
+?? build/log/idf_py_stdout_output_33240
+?? build/log/idf_py_stdout_output_33252
+?? build/log/idf_py_stdout_output_3341
+?? build/log/idf_py_stdout_output_33441
+?? build/log/idf_py_stdout_output_33462
+?? build/log/idf_py_stdout_output_33484
+?? build/log/idf_py_stdout_output_33722
+?? build/log/idf_py_stdout_output_33785
+?? build/log/idf_py_stdout_output_33997
+?? build/log/idf_py_stdout_output_34019
+?? build/log/idf_py_stdout_output_3403
+?? build/log/idf_py_stdout_output_34126
+?? build/log/idf_py_stdout_output_34188
+?? build/log/idf_py_stdout_output_34314
+?? build/log/idf_py_stdout_output_34451
+?? build/log/idf_py_stdout_output_34523
+?? build/log/idf_py_stdout_output_34544
+?? build/log/idf_py_stdout_output_34834
+?? build/log/idf_py_stdout_output_35045
+?? build/log/idf_py_stdout_output_35066
+?? build/log/idf_py_stdout_output_35224
+?? build/log/idf_py_stdout_output_35336
+?? build/log/idf_py_stdout_output_35492
+?? build/log/idf_py_stdout_output_35496
+?? build/log/idf_py_stdout_output_35707
+?? build/log/idf_py_stdout_output_35729
+?? build/log/idf_py_stdout_output_35770
+?? build/log/idf_py_stdout_output_36036
+?? build/log/idf_py_stdout_output_36235
+?? build/log/idf_py_stdout_output_36245
+?? build/log/idf_py_stdout_output_36268
+?? build/log/idf_py_stdout_output_36548
+?? build/log/idf_py_stdout_output_36757
+?? build/log/idf_py_stdout_output_36778
+?? build/log/idf_py_stdout_output_37069
+?? build/log/idf_py_stdout_output_37278
+?? build/log/idf_py_stdout_output_37301
+?? build/log/idf_py_stdout_output_37406
+?? build/log/idf_py_stdout_output_3742
+?? build/log/idf_py_stdout_output_37498
+?? build/log/idf_py_stdout_output_37594
+?? build/log/idf_py_stdout_output_37667
+?? build/log/idf_py_stdout_output_3775
+?? build/log/idf_py_stdout_output_37804
+?? build/log/idf_py_stdout_output_37827
+?? build/log/idf_py_stdout_output_37833
+?? build/log/idf_py_stdout_output_38112
+?? build/log/idf_py_stdout_output_3822
+?? build/log/idf_py_stdout_output_38247
+?? build/log/idf_py_stdout_output_38321
+?? build/log/idf_py_stdout_output_38343
+?? build/log/idf_py_stdout_output_38616
+?? build/log/idf_py_stdout_output_38826
+?? build/log/idf_py_stdout_output_3884
+?? build/log/idf_py_stdout_output_38847
+?? build/log/idf_py_stdout_output_39075
+?? build/log/idf_py_stdout_output_39516
+?? build/log/idf_py_stdout_output_39929
+?? build/log/idf_py_stdout_output_40073
+?? build/log/idf_py_stdout_output_40267
+?? build/log/idf_py_stdout_output_40351
+?? build/log/idf_py_stdout_output_4044
+?? build/log/idf_py_stdout_output_4086
+?? build/log/idf_py_stdout_output_4094
+?? build/log/idf_py_stdout_output_40968
+?? build/log/idf_py_stdout_output_41234
+?? build/log/idf_py_stdout_output_41453
+?? build/log/idf_py_stdout_output_41870
+?? build/log/idf_py_stdout_output_4210
+?? build/log/idf_py_stdout_output_42110
+?? build/log/idf_py_stdout_output_42673
+?? build/log/idf_py_stdout_output_4292
+?? build/log/idf_py_stdout_output_4299
+?? build/log/idf_py_stdout_output_43277
+?? build/log/idf_py_stdout_output_43405
+?? build/log/idf_py_stdout_output_43783
+?? build/log/idf_py_stdout_output_4397
+?? build/log/idf_py_stdout_output_44169
+?? build/log/idf_py_stdout_output_44200
+?? build/log/idf_py_stdout_output_44996
+?? build/log/idf_py_stdout_output_4500
+?? build/log/idf_py_stdout_output_4513
+?? build/log/idf_py_stdout_output_45369
+?? build/log/idf_py_stdout_output_45578
+?? build/log/idf_py_stdout_output_4590
+?? build/log/idf_py_stdout_output_45901
+?? build/log/idf_py_stdout_output_46305
+?? build/log/idf_py_stdout_output_46318
+?? build/log/idf_py_stdout_output_47019
+?? build/log/idf_py_stdout_output_47164
+?? build/log/idf_py_stdout_output_47385
+?? build/log/idf_py_stdout_output_4744
+?? build/log/idf_py_stdout_output_47747
+?? build/log/idf_py_stdout_output_48104
+?? build/log/idf_py_stdout_output_48259
+?? build/log/idf_py_stdout_output_48506
+?? build/log/idf_py_stdout_output_49152
+?? build/log/idf_py_stdout_output_49392
+?? build/log/idf_py_stdout_output_4970
+?? build/log/idf_py_stdout_output_49788
+?? build/log/idf_py_stdout_output_50063
+?? build/log/idf_py_stdout_output_50078
+?? build/log/idf_py_stdout_output_50368
+?? build/log/idf_py_stdout_output_50792
+?? build/log/idf_py_stdout_output_50997
+?? build/log/idf_py_stdout_output_5128
+?? build/log/idf_py_stdout_output_51651
+?? build/log/idf_py_stdout_output_51936
+?? build/log/idf_py_stdout_output_52475
+?? build/log/idf_py_stdout_output_52597
+?? build/log/idf_py_stdout_output_5273
+?? build/log/idf_py_stdout_output_52787
+?? build/log/idf_py_stdout_output_53142
+?? build/log/idf_py_stdout_output_53190
+?? build/log/idf_py_stdout_output_54042
+?? build/log/idf_py_stdout_output_54356
+?? build/log/idf_py_stdout_output_5437
+?? build/log/idf_py_stdout_output_54709
+?? build/log/idf_py_stdout_output_54907
+?? build/log/idf_py_stdout_output_54989
+?? build/log/idf_py_stdout_output_55400
+?? build/log/idf_py_stdout_output_55482
+?? build/log/idf_py_stdout_output_55804
+?? build/log/idf_py_stdout_output_55846
+?? build/log/idf_py_stdout_output_5599
+?? build/log/idf_py_stdout_output_5635
+?? build/log/idf_py_stdout_output_56405
+?? build/log/idf_py_stdout_output_56643
+?? build/log/idf_py_stdout_output_5673
+?? build/log/idf_py_stdout_output_56991
+?? build/log/idf_py_stdout_output_57300
+?? build/log/idf_py_stdout_output_57388
+?? build/log/idf_py_stdout_output_58137
+?? build/log/idf_py_stdout_output_58469
+?? build/log/idf_py_stdout_output_58535
+?? build/log/idf_py_stdout_output_5919
+?? build/log/idf_py_stdout_output_59392
+?? build/log/idf_py_stdout_output_59398
+?? build/log/idf_py_stdout_output_60280
+?? build/log/idf_py_stdout_output_6043
+?? build/log/idf_py_stdout_output_60588
+?? build/log/idf_py_stdout_output_60687
+?? build/log/idf_py_stdout_output_60773
+?? build/log/idf_py_stdout_output_60853
+?? build/log/idf_py_stdout_output_61659
+?? build/log/idf_py_stdout_output_61734
+?? build/log/idf_py_stdout_output_62130
+?? build/log/idf_py_stdout_output_6251
+?? build/log/idf_py_stdout_output_62669
+?? build/log/idf_py_stdout_output_62718
+?? build/log/idf_py_stdout_output_62942
+?? build/log/idf_py_stdout_output_63135
+?? build/log/idf_py_stdout_output_6325
+?? build/log/idf_py_stdout_output_63856
+?? build/log/idf_py_stdout_output_64103
+?? build/log/idf_py_stdout_output_6443
+?? build/log/idf_py_stdout_output_64681
+?? build/log/idf_py_stdout_output_64906
+?? build/log/idf_py_stdout_output_65264
+?? build/log/idf_py_stdout_output_65598
+?? build/log/idf_py_stdout_output_65600
+?? build/log/idf_py_stdout_output_66003
+?? build/log/idf_py_stdout_output_6607
+?? build/log/idf_py_stdout_output_66196
+?? build/log/idf_py_stdout_output_66478
+?? build/log/idf_py_stdout_output_67390
+?? build/log/idf_py_stdout_output_67782
+?? build/log/idf_py_stdout_output_68499
+?? build/log/idf_py_stdout_output_68655
+?? build/log/idf_py_stdout_output_69444
+?? build/log/idf_py_stdout_output_6966
+?? build/log/idf_py_stdout_output_69712
+?? build/log/idf_py_stdout_output_70038
+?? build/log/idf_py_stdout_output_70620
+?? build/log/idf_py_stdout_output_71657
+?? build/log/idf_py_stdout_output_71939
+?? build/log/idf_py_stdout_output_7258
+?? build/log/idf_py_stdout_output_72832
+?? build/log/idf_py_stdout_output_73627
+?? build/log/idf_py_stdout_output_73644
+?? build/log/idf_py_stdout_output_73815
+?? build/log/idf_py_stdout_output_73961
+?? build/log/idf_py_stdout_output_74090
+?? build/log/idf_py_stdout_output_7442
+?? build/log/idf_py_stdout_output_7452
+?? build/log/idf_py_stdout_output_74712
+?? build/log/idf_py_stdout_output_74981
+?? build/log/idf_py_stdout_output_75299
+?? build/log/idf_py_stdout_output_75997
+?? build/log/idf_py_stdout_output_76092
+?? build/log/idf_py_stdout_output_76305
+?? build/log/idf_py_stdout_output_76393
+?? build/log/idf_py_stdout_output_7683
+?? build/log/idf_py_stdout_output_7720
+?? build/log/idf_py_stdout_output_77322
+?? build/log/idf_py_stdout_output_77329
+?? build/log/idf_py_stdout_output_77919
+?? build/log/idf_py_stdout_output_78272
+?? build/log/idf_py_stdout_output_78382
+?? build/log/idf_py_stdout_output_78673
+?? build/log/idf_py_stdout_output_7880
+?? build/log/idf_py_stdout_output_79110
+?? build/log/idf_py_stdout_output_79452
+?? build/log/idf_py_stdout_output_79659
+?? build/log/idf_py_stdout_output_80001
+?? build/log/idf_py_stdout_output_80370
+?? build/log/idf_py_stdout_output_80401
+?? build/log/idf_py_stdout_output_81423
+?? build/log/idf_py_stdout_output_81612
+?? build/log/idf_py_stdout_output_81711
+?? build/log/idf_py_stdout_output_82003
+?? build/log/idf_py_stdout_output_82600
+?? build/log/idf_py_stdout_output_82611
+?? build/log/idf_py_stdout_output_83009
+?? build/log/idf_py_stdout_output_8352
+?? build/log/idf_py_stdout_output_83811
+?? build/log/idf_py_stdout_output_84408
+?? build/log/idf_py_stdout_output_84720
+?? build/log/idf_py_stdout_output_85622
+?? build/log/idf_py_stdout_output_8589
+?? build/log/idf_py_stdout_output_8661
+?? build/log/idf_py_stdout_output_86710
+?? build/log/idf_py_stdout_output_87340
+?? build/log/idf_py_stdout_output_87650
+?? build/log/idf_py_stdout_output_8771
+?? build/log/idf_py_stdout_output_8827
+?? build/log/idf_py_stdout_output_88542
+?? build/log/idf_py_stdout_output_89664
+?? build/log/idf_py_stdout_output_9086
+?? build/log/idf_py_stdout_output_9410
+?? build/log/idf_py_stdout_output_9506
+?? build/log/idf_py_stdout_output_9624
+?? build/log/idf_py_stdout_output_9728
+?? build/log/idf_py_stdout_output_9757
+?? build/log/idf_py_stdout_output_9815
+?? build/log/idf_py_stdout_output_9841
+?? build/spiffs-flash_args
+?? build/spiffs-flash_args.in
+?? build/spiffs.bin
+?? build/spiffs_payload/
+?? build_astro_mjpeg.sh
+?? build_space_total_keep_source.sh
+?? dependencies.lock
+?? docs/
+?? flash_safe.sh
+?? gen_astro_mjpeg.py
+?? idf_diff_snapshot.sh
+?? idf_snapshots/
+?? main/audio/
+?? main/display/st7789.c
+?? main/display/st7789.h
+?? main/drivers/
+?? main/experiments/exp_ball.c
+?? main/experiments/exp_fraction.c
+?? main/experiments/exp_math24.c
+?? main/experiments/exp_memory.c
+?? main/experiments/exp_music.c
+?? main/experiments/exp_numline.c
+?? main/experiments/exp_rocket.c
+?? main/experiments/exp_seesaw.c
+?? main/experiments/exp_snake.c
+?? main/experiments/exp_solar.c
+?? main/experiments/exp_sudoku.c
+?? main/experiments/exp_wifi_ota.c
+?? main/idf_component.yml
+?? managed_components/
+?? mjpeg_out/
+?? out_astro/
+?? phase_orbit_1080p30.mp4
+?? test
+?? usb_port_check.sh
+?? video.sh
+origin	git@github.com:git-beginner-123/mystem.git (fetch)
+origin	git@github.com:git-beginner-123/mystem.git (push)
+
+IDF_PATH is not set

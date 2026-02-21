@@ -16,3 +16,5 @@ void Markets_Tick(uint32_t now_ms);
 
 int  Markets_Count(void);
 bool Markets_Get(int index, MarketQuote* out);
+bool Markets_HasAnyValid(void);
+const char* Markets_LastStatus(void);

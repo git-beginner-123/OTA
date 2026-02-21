@@ -57,6 +57,7 @@ static char s_pending_pass[65];
 static bool s_save_pending_cred = false;
 static char s_connecting_pass[65];
 static bool s_connect_from_saved = false;
+static uint32_t s_connected_since_ms = 0;
 
 static uint32_t now_ms(void)
 {
@@ -406,10 +407,12 @@ static void start(ExperimentContext* ctx)
     s_connect_from_saved = false;
     s_fail_drawn = false;
     memset(s_line_cache, 0, sizeof(s_line_cache));
+    s_connected_since_ms = 0;
 
     if (comm_wifi_is_connected()) {
         if (!comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid))) s_sel_ssid[0] = 0;
         s_stage = kStageConnected;
+        s_connected_since_ms = now_ms();
         render_connected_screen_once();
     } else {
         (void)comm_wifi_switch_to_sta_only();
@@ -488,6 +491,7 @@ static void tick(ExperimentContext* ctx)
             s_connecting_pass[0] = 0;
             s_connect_from_saved = false;
             s_stage = kStageConnected;
+            s_connected_since_ms = now_ms();
             s_connected_screen = false;
             s_next_ui_ms = 0;
             render_connected_screen_once();
@@ -522,6 +526,9 @@ static void tick(ExperimentContext* ctx)
     s_next_ui_ms = t + 1000;
 
     render_connected_screen_once();
+    bool any_valid = Markets_HasAnyValid();
+    bool show_query_status = (!any_valid && s_connected_since_ms != 0 && (t - s_connected_since_ms) >= 3000U);
+    const char* query_status = Markets_LastStatus();
     for (int i = 0; i < Markets_Count() && i < 3; i++) {
         MarketQuote q;
         char value[32];
@@ -532,8 +539,13 @@ static void tick(ExperimentContext* ctx)
         if (i == 1) { label = "SILV"; label_color = color_silver(); }
         if (i == 2) { label = "BREN"; label_color = color_oil(); }
 
-        if (Markets_Get(i, &q)) snprintf(value, sizeof(value), "%.1f %+.1fpct", q.price, q.change_pct);
-        else snprintf(value, sizeof(value), "LOADING...");
+        if (Markets_Get(i, &q)) {
+            snprintf(value, sizeof(value), "%.1f %+.1fpct", q.price, q.change_pct);
+        } else if (show_query_status) {
+            snprintf(value, sizeof(value), "%.31s", (query_status && query_status[0]) ? query_status : "QUERYING...");
+        } else {
+            snprintf(value, sizeof(value), "LOADING...");
+        }
 
         if (strcmp(s_line_cache[i], value) != 0) {
             strncpy(s_line_cache[i], value, sizeof(s_line_cache[i]) - 1);

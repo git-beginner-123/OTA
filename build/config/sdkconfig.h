@@ -1088,6 +1088,9 @@
 #define CONFIG_COMM_WIFI_SSID "YOUR_SSID"
 #define CONFIG_COMM_WIFI_PASSWORD "YOUR_PASSWORD"
 #define CONFIG_COMM_WIFI_UDP_PORT 3333
+#define CONFIG_COMM_WIFI_OTA_URL "https://raw.githubusercontent.com/git-beginner-123/mystem/master/ota/latest.bin"
+#define CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS 20000
+#define CONFIG_COMM_WIFI_OTA_HTTP_TIMEOUT_MS 15000
 
 /* List of deprecated options */
 #define CONFIG_A2D_INITIAL_TRACE_LEVEL CONFIG_BT_LOG_A2D_TRACE_LEVEL

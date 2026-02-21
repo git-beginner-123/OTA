@@ -161,8 +161,12 @@
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/usb/libusb.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/json/libjson.a
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/libespressif__qrcode.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/libcomm_wifi.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_ble/libcomm_ble.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/main/libmain.a
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/wifi_provisioning/libwifi_provisioning.a
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/libespressif__qrcode.a
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/spiffs/libspiffs.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/libcomm_wifi.a
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_ble/libcomm_ble.a

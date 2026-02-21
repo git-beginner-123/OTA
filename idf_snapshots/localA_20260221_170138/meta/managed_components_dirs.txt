@@ -1,0 +1,3 @@
+managed_components/espressif__qrcode
+managed_components/espressif__qrcode/include
+managed_components/espressif__qrcode/test_apps

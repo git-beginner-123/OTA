@@ -1,0 +1,6 @@
+snapshot_name=localA_20260221_170138
+created_at=2026-02-21T17:01:38+01:00
+hostname=linux
+project_dir=/home/wyp/esp/stem_framework_idf61_lcd
+user=wyp
+shell=/bin/bash

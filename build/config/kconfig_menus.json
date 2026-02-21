@@ -36205,6 +36205,36 @@
                         "range": null,
                         "title": "UDP server port",
                         "type": "int"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": "HTTP/HTTPS URL used by WIFI OTA experiment.\nExample: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin",
+                        "id": "COMM_WIFI_OTA_URL",
+                        "name": "COMM_WIFI_OTA_URL",
+                        "range": null,
+                        "title": "OTA firmware URL",
+                        "type": "string"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "COMM_WIFI_CONNECT_TIMEOUT_MS",
+                        "name": "COMM_WIFI_CONNECT_TIMEOUT_MS",
+                        "range": null,
+                        "title": "WiFi connect timeout (ms)",
+                        "type": "int"
+                    },
+                    {
+                        "children": [],
+                        "depends_on": null,
+                        "help": null,
+                        "id": "COMM_WIFI_OTA_HTTP_TIMEOUT_MS",
+                        "name": "COMM_WIFI_OTA_HTTP_TIMEOUT_MS",
+                        "range": null,
+                        "title": "OTA HTTP timeout (ms)",
+                        "type": "int"
                     }
                 ],
                 "depends_on": null,

@@ -1,0 +1,59 @@
+ESP-IDF Snapshot Diff Report
+generated_at: 2026-02-21T17:01:41+01:00
+snapshot_a: /home/wyp/esp/stem_framework_idf61_lcd/idf_snapshots/localA_20260221_170138
+snapshot_b: /home/wyp/esp/stem_framework_idf61_lcd/idf_snapshots/localB_20260221_170141
+
+## Snapshot Info
+--- idf_snapshots/localA_20260221_170138/meta/snapshot_info.txt	2026-02-21 17:01:38.920528409 +0100
++++ idf_snapshots/localB_20260221_170141/meta/snapshot_info.txt	2026-02-21 17:01:41.040315628 +0100
+@@ -1,5 +1,5 @@
+-snapshot_name=localA_20260221_170138
+-created_at=2026-02-21T17:01:38+01:00
++snapshot_name=localB_20260221_170141
++created_at=2026-02-21T17:01:41+01:00
+ hostname=linux
+ project_dir=/home/wyp/esp/stem_framework_idf61_lcd
+ user=wyp
+
+## Environment
+(no differences)
+
+## Git Info
+(no differences)
+
+## Managed Components Dirs
+(no differences)
+
+## File: sdkconfig
+(no differences)
+
+## File: sdkconfig.defaults
+(missing on both sides)
+
+## File: dependencies.lock
+(no differences)
+
+## File: partitions.csv
+(no differences)
+
+## File: CMakeLists.txt
+(no differences)
+
+## File: main/idf_component.yml
+(no differences)
+
+## File: build/config/sdkconfig.h
+(no differences)
+
+## File: build/config/sdkconfig.cmake
+(no differences)
+
+## File: build/project_description.json
+(no differences)
+
+## File: build/flasher_args.json
+(no differences)
+
+## File: build/config.env
+(no differences)
+

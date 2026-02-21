@@ -20,6 +20,9 @@
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/uf2.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/uf2-app.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/__ldgen_output_sections.ld.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/spiffs_spiffs_bin.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/spiffs-flash.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/encrypted-spiffs-flash.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/edit_cache.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/rebuild_cache.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/CMakeFiles/list_install_components.dir
@@ -863,6 +866,13 @@
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/wifi_provisioning/CMakeFiles/install.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/wifi_provisioning/CMakeFiles/install/local.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/wifi_provisioning/CMakeFiles/install/strip.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/__idf_espressif__qrcode.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/edit_cache.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/rebuild_cache.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/list_install_components.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/install.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/install/local.dir
+/home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/espressif__qrcode/CMakeFiles/install/strip.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/CMakeFiles/__idf_comm_wifi.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/CMakeFiles/edit_cache.dir
 /home/wyp/esp/stem_framework_idf61_lcd/build/esp-idf/comm_wifi/CMakeFiles/rebuild_cache.dir
