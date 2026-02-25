@@ -10,4 +10,19 @@ menu "COMM WiFi"
     config COMM_WIFI_UDP_PORT
         int "UDP server port"
         default 3333
+
+    config COMM_WIFI_OTA_URL
+        string "OTA firmware URL"
+        default "https://raw.githubusercontent.com/git-beginner-123/mystem/master/ota/latest.bin"
+        help
+            HTTP/HTTPS URL used by WIFI OTA experiment.
+            Example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin
+
+    config COMM_WIFI_CONNECT_TIMEOUT_MS
+        int "WiFi connect timeout (ms)"
+        default 20000
+
+    config COMM_WIFI_OTA_HTTP_TIMEOUT_MS
+        int "OTA HTTP timeout (ms)"
+        default 15000
 endmenu

@@ -25,3 +25,8 @@ struct ExperimentContext {
 };
 
 const Experiment* ExpWifiRemote_Get(void);
+bool ExpGo13_ShouldConsumeBack(void);
+bool ExpGo13_ShouldConsumeNonBackExit(InputKey key);
+bool ExpGo13_TakeExitRequest(void);
+bool ExpGoReplay_ShouldConsumeBack(void);
+bool ExpSetting_ShouldConsumeBack(void);

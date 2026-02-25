@@ -1,31 +1,43 @@
 #include "experiments/experiments_registry.h"
 
-extern const Experiment g_exp_gpio;
-extern const Experiment g_exp_pwm;
-extern const Experiment g_exp_adc;
-extern const Experiment g_exp_uart;
-extern const Experiment g_exp_i2c;
-extern const Experiment g_exp_mic;
-extern const Experiment g_exp_speaker;
-extern const Experiment g_exp_ble;
-extern const Experiment g_exp_wifi_ap;
-extern const Experiment g_exp_wifi_sta;
-extern const Experiment g_exp_semaforo;
-extern const Experiment g_exp_maze;
+extern const Experiment g_exp_game_chess;
+extern const Experiment g_exp_game_chess_replay;
+extern const Experiment g_exp_game_chess_tsumego;
+extern const Experiment g_exp_game_go13;
+extern const Experiment g_exp_game_go13_replay;
+extern const Experiment g_exp_game_go13_tsumego;
+extern const Experiment g_exp_game_gomoku;
+extern const Experiment g_exp_game_dice_chess;
+extern const Experiment g_exp_game_chinese_chess;
+extern const Experiment g_exp_wifi_ota;
 
 static const Experiment* kList[] = {
-    &g_exp_gpio,
-    &g_exp_pwm,
-    &g_exp_adc,
-    &g_exp_uart,
-    &g_exp_i2c,
-    &g_exp_mic,
-    &g_exp_speaker,
-    &g_exp_ble,
-    &g_exp_wifi_ap,
-    &g_exp_wifi_sta,
-    &g_exp_semaforo,
-    &g_exp_maze,
+#if defined(APP_VARIANT_GO)
+    &g_exp_game_go13,
+    &g_exp_game_go13_replay,
+    &g_exp_game_go13_tsumego,
+    &g_exp_wifi_ota,
+#elif defined(APP_VARIANT_CHESS)
+    &g_exp_game_chess,
+    &g_exp_game_chess_replay,
+    &g_exp_game_chess_tsumego,
+    &g_exp_wifi_ota,
+#elif defined(APP_VARIANT_DICE)
+    &g_exp_game_dice_chess,
+    &g_exp_wifi_ota,
+#elif defined(APP_VARIANT_GOMOKU)
+    &g_exp_game_gomoku,
+    &g_exp_wifi_ota,
+#else
+    &g_exp_game_chess,
+    &g_exp_game_go13,
+    &g_exp_game_go13_replay,
+    &g_exp_game_go13_tsumego,
+    &g_exp_game_gomoku,
+    &g_exp_game_dice_chess,
+    &g_exp_game_chinese_chess,
+    &g_exp_wifi_ota,
+#endif
 };
 
 int Experiments_Count(void)

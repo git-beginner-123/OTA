@@ -6,8 +6,17 @@ typedef enum {
     kInputNone = 0,
     kInputUp,
     kInputDown,
+    kInputLeft,
+    kInputRight,
     kInputEnter,
-    kInputBack
+    kInputBack,
+    // White-side keys for versus mode
+    kInputWhiteUp,
+    kInputWhiteDown,
+    kInputWhiteLeft,
+    kInputWhiteRight,
+    kInputWhiteEnter,
+    kInputWhiteBack
 } InputKey;
 
 typedef struct {

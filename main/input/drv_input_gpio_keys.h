@@ -7,3 +7,4 @@
 
 void DrvInputGpioKeys_Init(void);
 void DrvInputGpioKeys_Poll(void);
+void DrvInputGpioKeys_SetVersusMode(bool enable);
