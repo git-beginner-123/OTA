@@ -368,6 +368,68 @@ static void draw_status_normal_center(int y, const char* text, uint16_t color)
     draw_text_normal_center(y, text, color);
 }
 
+static int text_pixel_width(const char* text)
+{
+    int len = 0;
+    for (const char* p = text; p && *p; ++p) len++;
+    return (len > 0) ? (len * 9 - 1) : 0;
+}
+
+static void draw_rect_frame(int x, int y, int w, int h, uint16_t c)
+{
+    if (w < 2 || h < 2) return;
+    St7789_FillRect(x, y, w, 1, c);
+    St7789_FillRect(x, y + h - 1, w, 1, c);
+    St7789_FillRect(x, y, 1, h, c);
+    St7789_FillRect(x + w - 1, y, 1, h, c);
+}
+
+static const char* menu_item_label(GoMenuItem item)
+{
+    switch (item) {
+        case kMenuCancel: return "CANCEL";
+        case kMenuCountRequest: return "COUNT";
+        case kMenuExit: return "EXIT";
+        case kMenuResign: return "RESIGN";
+        case kMenuSave: return "SAVE";
+        case kMenuPlay: return "PLAY";
+        default: return "MENU";
+    }
+}
+
+static void draw_action_menu_row(bool top_row)
+{
+    int count = 0;
+    const GoMenuItem* items = active_menu_items(&count);
+    if (!items || count <= 0) return;
+
+    const int y = top_row ? 20 : (St7789_Height() - 36);
+    const int h = 16;
+    const int margin = 6;
+    const int gap = 4;
+    const int usable = St7789_Width() - margin * 2 - gap * (count - 1);
+    const int slot_w = (count > 0) ? (usable / count) : 0;
+
+    for (int i = 0; i < count; i++) {
+        int x = margin + i * (slot_w + gap);
+        bool selected = ((int)items[i] == s_menu_sel);
+
+        uint16_t bg = selected ? Ui_ColorRGB(240, 206, 126) : Ui_ColorRGB(52, 43, 30);
+        uint16_t frame = selected ? c_ok() : Ui_ColorRGB(118, 100, 72);
+        uint16_t fg = selected ? Ui_ColorRGB(22, 18, 12) : c_text();
+        const char* name = menu_item_label(items[i]);
+
+        St7789_FillRect(x, y, slot_w, h, bg);
+        draw_rect_frame(x, y, slot_w, h, frame);
+
+        int tw = text_pixel_width(name);
+        int tx = x + (slot_w - tw) / 2;
+        int ty = y;
+        if (top_row) draw_text_rot180_at(tx, ty, name, fg);
+        else draw_text_normal_at(tx, ty, name, fg);
+    }
+}
+
 static void draw_status_if_changed(bool force)
 {
     if (!force && strcmp(s_status, s_status_cache) == 0 && s_status_side == s_status_cache_side) return;
@@ -376,7 +438,10 @@ static void draw_status_if_changed(bool force)
     St7789_FillRect(0, 20, St7789_Width(), 16, c_bg());
     St7789_FillRect(0, St7789_Height() - 36, St7789_Width(), 16, c_bg());
 
-    if (s_status[0]) {
+    if (s_ui_state == kGoUiActionMenu) {
+        draw_action_menu_row(true);
+        draw_action_menu_row(false);
+    } else if (s_status[0]) {
         uint16_t col = s_game_over ? c_ok() : c_warn();
         if (s_game_over) {
             draw_status_rot180_center(20, s_status, col);
