@@ -1,4 +1,4 @@
-version=V1.05
+version=V1.06
 git=af75125
 describe=af75125-dirty
 target=go
