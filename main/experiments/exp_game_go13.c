@@ -271,14 +271,14 @@ static void compose_hud_values_bottom(char m[20], char b[20], char c[20])
 static void draw_hud_labels_top(void)
 {
     St7789_FillRect(0, 0, St7789_Width(), 20, c_bg());
-    St7789_FillRect(2, 1, 10, 18, c_hud_label_bg());
-    // Place top-middle label to the right in screen coordinates so it appears
-    // on the left from white-side viewing perspective.
-    St7789_FillRect(164, 1, 10, 18, c_hud_label_bg());
-    St7789_FillRect(174, 1, 10, 18, c_hud_label_bg());
-    draw_text_rot180_at(4, 2, "C", c_hud_c());
-    draw_text_rot180_at(166, 2, "B", c_hud_b());
-    draw_text_rot180_at(176, 2, "M", c_hud_m());
+    // Top row is rotated for white player. Put label boxes to the right of
+    // each value box in screen coordinates so white sees label on the left.
+    St7789_FillRect(78, 1, 10, 18, c_hud_label_bg());   // C
+    St7789_FillRect(172, 1, 10, 18, c_hud_label_bg());  // B
+    St7789_FillRect(228, 1, 10, 18, c_hud_label_bg());  // M
+    draw_text_rot180_at(80, 2, "C", c_hud_c());
+    draw_text_rot180_at(174, 2, "B", c_hud_b());
+    draw_text_rot180_at(230, 2, "M", c_hud_m());
 }
 
 static void draw_hud_labels_bottom(void)

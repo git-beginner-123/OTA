@@ -200,16 +200,43 @@ publish_to_public_ota_repo() {
     git -C "${repo_dir}" rm -rf . >/dev/null 2>&1 || true
   fi
 
+  verify_public_remote_head() {
+    local repo="$1"
+    local br="$2"
+    local local_head
+    local remote_head
+    local_head="$(git -C "${repo}" rev-parse HEAD)"
+    remote_head="$(git -C "${repo}" ls-remote --heads origin "${br}" | awk 'NR==1{print $1}')"
+    if [[ -z "${remote_head}" ]]; then
+      echo "[PUBLIC] verify failed: cannot read origin/${br} head" >&2
+      return 1
+    fi
+    if [[ "${local_head}" != "${remote_head}" ]]; then
+      echo "[PUBLIC] verify failed: local ${local_head} != origin/${br} ${remote_head}" >&2
+      return 1
+    fi
+    echo "[PUBLIC] verify ok: origin/${br}=${remote_head}"
+  }
+
   rm -rf "${repo_dir}/${subdir}"
   cp -a ota "${repo_dir}/${subdir}"
 
   git -C "${repo_dir}" add "${subdir}"
   if git -C "${repo_dir}" diff --cached --quiet; then
+    local ahead=0
     echo "[PUBLIC] ota unchanged, nothing to commit"
     if [[ "${remote_branch_exists}" -eq 0 ]]; then
       echo "[PUBLIC] first push for branch ${branch}"
       git -C "${repo_dir}" push -u origin "${branch}"
+      verify_public_remote_head "${repo_dir}" "${branch}"
+      return 0
     fi
+    ahead="$(git -C "${repo_dir}" rev-list --right-only --count "origin/${branch}...${branch}")"
+    if [[ "${ahead}" -gt 0 ]]; then
+      echo "[PUBLIC] local branch ahead by ${ahead}, push pending commits"
+      git -C "${repo_dir}" push origin "${branch}"
+    fi
+    verify_public_remote_head "${repo_dir}" "${branch}"
     return 0
   fi
 
@@ -219,6 +246,7 @@ publish_to_public_ota_repo() {
   else
     git -C "${repo_dir}" push -u origin "${branch}"
   fi
+  verify_public_remote_head "${repo_dir}" "${branch}"
   echo "[PUBLIC] pushed ota to ${repo_url}@${branch}"
 }
 

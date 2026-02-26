@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 
 find_package(Git QUIET)
-if(GIT_FOUND)
+if((NOT DEFINED PROJECT_VER OR PROJECT_VER STREQUAL "") AND GIT_FOUND)
     execute_process(
         COMMAND ${GIT_EXECUTABLE} describe --tags --always --dirty
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
