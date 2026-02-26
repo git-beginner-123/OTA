@@ -1,6 +1,6 @@
-version=22395a1-dirty
-git=22395a1
-describe=22395a1-dirty
+version=V1.0
+git=af75125
+describe=af75125-dirty
 target=go
 variant=GO
 type_id=1
