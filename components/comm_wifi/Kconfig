@@ -13,7 +13,7 @@ menu "COMM WiFi"
 
     config COMM_WIFI_OTA_URL
         string "OTA firmware URL"
-        default "https://raw.githubusercontent.com/git-beginner-123/OTA/master/ota/latest.bin"
+        default "https://raw.githubusercontent.com/git-beginner-123/OTA/main/ota/latest.bin"
         help
             HTTP/HTTPS URL used by WIFI OTA experiment.
             Template mode example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin

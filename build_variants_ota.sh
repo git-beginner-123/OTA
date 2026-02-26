@@ -168,16 +168,16 @@ publish_to_public_ota_repo() {
       branch="$(git -C "${repo_dir}" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
     fi
     if [[ -z "${branch}" ]]; then
-      branch="master"
+      branch="main"
     fi
     if git -C "${repo_dir}" fetch origin --prune; then
       if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
         remote_branch_exists=1
-      elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/master"; then
-        branch="master"
-        remote_branch_exists=1
       elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/main"; then
         branch="main"
+        remote_branch_exists=1
+      elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/master"; then
+        branch="master"
         remote_branch_exists=1
       else
         echo "[PUBLIC] no remote branch found, will continue with local ${branch}"
@@ -190,7 +190,7 @@ publish_to_public_ota_repo() {
       git -C "${repo_dir}" merge --ff-only "origin/${branch}"
     fi
   else
-    branch="master"
+    branch="main"
     echo "[PUBLIC] empty repo detected, bootstrap branch ${branch}"
     git -C "${repo_dir}" checkout --orphan "${branch}"
     git -C "${repo_dir}" rm -rf . >/dev/null 2>&1 || true
