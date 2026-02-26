@@ -1,0 +1,6 @@
+version=22395a1-dirty
+git=22395a1
+describe=22395a1-dirty
+target=go
+variant=GO
+type_id=1
