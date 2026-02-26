@@ -88,8 +88,12 @@ build_one() {
   local slug="$2"
   local type_id="$3"
   local bdir="build-${slug}"
+  local -a build_args=()
+  if [[ -n "${VERSION_OVERRIDE}" ]]; then
+    build_args+=("-DPROJECT_VER=${VERSION_OVERRIDE}")
+  fi
   echo "[BUILD] type=${type_id} variant=${variant} dir=${bdir} ver=${VERSION}"
-  idf.py -B "${bdir}" -DAPP_VARIANT="${variant}" build
+  idf.py -B "${bdir}" -DAPP_VARIANT="${variant}" "${build_args[@]}" build
 
   local src_bin="${bdir}/${PROJECT_BIN}"
   [[ -f "${src_bin}" ]] || { echo "missing ${src_bin}" >&2; exit 1; }
