@@ -62,6 +62,7 @@ static char s_bottom_b_cache[20] = "";
 static char s_bottom_c_cache[20] = "";
 static char s_status_cache[64] = "";
 static Stone s_status_cache_side = kStoneNone;
+static int s_status_cache_ui = 0;
 static Stone s_status_side = kStoneNone;
 
 static int s_focus_black_x = 9;
@@ -271,10 +272,12 @@ static void draw_hud_labels_top(void)
 {
     St7789_FillRect(0, 0, St7789_Width(), 20, c_bg());
     St7789_FillRect(2, 1, 10, 18, c_hud_label_bg());
-    St7789_FillRect(80, 1, 10, 18, c_hud_label_bg());
+    // Place top-middle label to the right in screen coordinates so it appears
+    // on the left from white-side viewing perspective.
+    St7789_FillRect(164, 1, 10, 18, c_hud_label_bg());
     St7789_FillRect(174, 1, 10, 18, c_hud_label_bg());
     draw_text_rot180_at(4, 2, "C", c_hud_c());
-    draw_text_rot180_at(82, 2, "B", c_hud_b());
+    draw_text_rot180_at(166, 2, "B", c_hud_b());
     draw_text_rot180_at(176, 2, "M", c_hud_m());
 }
 
@@ -432,11 +435,14 @@ static void draw_action_menu_row(bool top_row)
 
 static void draw_status_if_changed(bool force)
 {
-    if (!force && strcmp(s_status, s_status_cache) == 0 && s_status_side == s_status_cache_side) return;
+    bool ui_changed = (s_ui_state != s_status_cache_ui);
+    if (!force && !ui_changed && strcmp(s_status, s_status_cache) == 0 && s_status_side == s_status_cache_side) return;
 
-    // clear both status bands first
-    St7789_FillRect(0, 20, St7789_Width(), 16, c_bg());
-    St7789_FillRect(0, St7789_Height() - 36, St7789_Width(), 16, c_bg());
+    // Action menu redraws full button slots itself; avoid clear+repaint flash on LR switching.
+    if (s_ui_state != kGoUiActionMenu || force || ui_changed) {
+        St7789_FillRect(0, 20, St7789_Width(), 16, c_bg());
+        St7789_FillRect(0, St7789_Height() - 36, St7789_Width(), 16, c_bg());
+    }
 
     if (s_ui_state == kGoUiActionMenu) {
         draw_action_menu_row(true);
@@ -456,6 +462,7 @@ static void draw_status_if_changed(bool force)
     strncpy(s_status_cache, s_status, sizeof(s_status_cache) - 1);
     s_status_cache[sizeof(s_status_cache) - 1] = 0;
     s_status_cache_side = s_status_side;
+    s_status_cache_ui = s_ui_state;
 }
 
 static void draw_static_board(void)
@@ -926,6 +933,7 @@ static void reset_game(void)
     s_hud_turn_cache = kStoneNone;
     s_status_cache[0] = 0;
     s_status_cache_side = kStoneNone;
+    s_status_cache_ui = kGoUiPlay;
     s_focus_black_x = 9;
     s_focus_black_y = 3;
     s_focus_white_x = 3;
@@ -1015,6 +1023,13 @@ static InputKey normalize_key_for_side(InputKey raw, Stone side)
 static InputKey normalize_turn_key(InputKey key)
 {
     return normalize_key_for_side(key, s_turn);
+}
+
+static Stone menu_owner_from_back_key(InputKey raw_key)
+{
+    if (raw_key == kInputBack) return kStoneBlack;
+    if (raw_key == kInputWhiteBack) return kStoneWhite;
+    return kStoneNone;
 }
 
 static void update_timers(void)
@@ -1159,7 +1174,13 @@ static void on_key(ExperimentContext* ctx, InputKey raw_key)
             s_exit_trigger_key = raw_key;
             return;
         }
-        Stone owner = (raw_key == kInputBack) ? kStoneBlack : kStoneWhite;
+        Stone owner = menu_owner_from_back_key(raw_key);
+        if (owner == kStoneNone) {
+            return;
+        }
+        if (is_play_menu_mode() && owner != s_turn) {
+            return;
+        }
         open_action_menu(owner);
         Ui_BeginBatch();
         draw_status_if_changed(false);
