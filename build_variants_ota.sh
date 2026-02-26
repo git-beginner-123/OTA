@@ -74,6 +74,21 @@ detect_version() {
 VERSION="$(detect_version)"
 echo "[INFO] VERSION=${VERSION} (source: ${VERSION_SOURCE})"
 
+detect_source_git() {
+  if command -v git >/dev/null 2>&1; then
+    local h
+    h="$(git rev-parse --short HEAD 2>/dev/null || true)"
+    if [[ -n "${h}" ]]; then
+      echo "${h}"
+      return 0
+    fi
+  fi
+  echo "unknown"
+}
+
+SOURCE_GIT="$(detect_source_git)"
+echo "[INFO] SOURCE_GIT=${SOURCE_GIT}"
+
 is_selected() {
   local type_id="$1"
   local slug="$2"
@@ -106,6 +121,27 @@ build_one() {
   sha256sum "${out_dir}/latest.bin" > "${out_dir}/latest.sha256"
   sha256sum "${out_dir}/app-${VERSION}.bin" > "${out_dir}/app-${VERSION}.sha256"
   sha256sum "${out_dir}/app-${VERSION}-t${type_id}.bin" > "${out_dir}/app-${VERSION}-t${type_id}.sha256"
+
+  local proj_ver="unknown"
+  if [[ -f "${bdir}/project_description.json" ]]; then
+    proj_ver="$(sed -n 's/^[[:space:]]*"project_version":[[:space:]]*"\(.*\)",[[:space:]]*$/\1/p' "${bdir}/project_description.json" | head -n 1)"
+    [[ -n "${proj_ver}" ]] || proj_ver="unknown"
+  fi
+
+  local meta_file
+  for meta_file in \
+    "${out_dir}/latest.meta" \
+    "${out_dir}/app-${VERSION}.meta" \
+    "${out_dir}/app-${VERSION}-t${type_id}.meta"; do
+    cat > "${meta_file}" <<EOF
+project_ver=${proj_ver}
+artifact_version=${VERSION}
+source_git=${SOURCE_GIT}
+variant=${variant}
+target=${slug}
+type_id=${type_id}
+EOF
+  done
 }
 
 maybe_push_private_repo() {
