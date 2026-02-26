@@ -29,7 +29,7 @@
 
 static const char* TAG = "EXP_SYSTEM";
 static const char* kSystemTitle = "SETTING";
-static const char* kSystemCopyright = "Copyright (C) 2026 SEESAW";
+static const char* kSystemCopyright = "Copyright (C) 2026 SOY-GAME-TECH";
 static const char* kProvServiceName = "SOY_GAME_TECK";
 static const char* kProvPop = "SEESAW2026";
 static const char* kPortalUrl = "http://192.168.4.1";
@@ -130,7 +130,7 @@ static void draw_game_selector_rows(void)
     char line1[64];
     snprintf(line0, sizeof(line0), "TARGET(LR) %s %s", t0, t1);
     if (count > 2) snprintf(line1, sizeof(line1), "           %s %s", t2, (count > 3) ? t3 : "");
-    else snprintf(line1, sizeof(line1), "SEL: %s", AppSettings_OtaGameName(s_cfg.ota_game_sel));
+    else snprintf(line1, sizeof(line1), "           ");
 
     Ui_DrawBodyTextRowColor(6, line0, c_info());
     Ui_DrawBodyTextRowColor(7, line1, c_info());
