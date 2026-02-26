@@ -13,10 +13,12 @@ menu "COMM WiFi"
 
     config COMM_WIFI_OTA_URL
         string "OTA firmware URL"
-        default "https://raw.githubusercontent.com/git-beginner-123/game/master/ota/latest.bin"
+        default "https://raw.githubusercontent.com/git-beginner-123/OTA/master/ota/latest.bin"
         help
             HTTP/HTTPS URL used by WIFI OTA experiment.
-            Example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin
+            Template mode example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/latest.bin
+            (auto expands to /ota/<target>/latest.bin)
+            Fixed file mode example: https://raw.githubusercontent.com/<owner>/<repo>/<branch>/ota/go/latest.bin
 
     config COMM_WIFI_CONNECT_TIMEOUT_MS
         int "WiFi connect timeout (ms)"

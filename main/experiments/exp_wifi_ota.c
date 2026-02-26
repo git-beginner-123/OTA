@@ -15,8 +15,7 @@
 #include "esp_crt_bundle.h"
 #include "esp_app_desc.h"
 #include "nvs.h"
-#include "wifi_provisioning/manager.h"
-#include "wifi_provisioning/scheme_softap.h"
+#include "esp_http_server.h"
 #include "display/st7789.h"
 #include "qrcode.h"
 
@@ -31,6 +30,9 @@
 static const char* TAG = "EXP_SYSTEM";
 static const char* kSystemTitle = "SETTING";
 static const char* kSystemCopyright = "Copyright (C) 2026 SEESAW";
+static const char* kProvServiceName = "SOY_GAME_TECK";
+static const char* kProvPop = "SEESAW2026";
+static const char* kPortalUrl = "http://192.168.4.1";
 
 typedef enum {
     kSettingPageHome = 0,
@@ -45,9 +47,7 @@ static int s_time_sel = 0;
 static AppSettings s_cfg;
 
 typedef enum {
-    kStateSelectAp = 0,
-    kStateEditPass,
-    kStateQrProvision,
+    kStatePortalProvision = 0,
     kStateConnecting,
     kStateDownloading,
     kStateSuccess,
@@ -56,39 +56,28 @@ typedef enum {
 
 static TaskHandle_t s_ota_task = NULL;
 static volatile bool s_abort = false;
-static volatile SystemState s_state = kStateSelectAp;
+static volatile SystemState s_state = kStateConnecting;
 static volatile int s_progress = 0;
 static bool s_ui_dirty = true;
-static char s_status[64] = "Select AP";
+static char s_status[64] = "Searching WiFi...";
 static bool s_need_full_redraw = true;
 static uint32_t s_last_anim_ms = 0;
 static int s_anim_phase = 0;
 
-static CommWifiAp s_aps[3];
-static int s_ap_count = 0;
-static int s_ap_sel = 0;
 static char s_sel_ssid[33];
-static char s_pass[33];
-static int s_pass_len = 0;
-static int s_pass_sel = 0;
 static bool s_qr_ready = false;
 static int s_qr_size = 0;
 static uint8_t* s_qr_matrix = NULL;
 static size_t s_qr_matrix_cap = 0;
 static char s_qr_payload[192];
 static char s_ota_url[200];
-
-
-static const char kPassChars[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    "abcdefghijklmnopqrstuvwxyz"
-    "0123456789"
-    "!@#$%^&*_-.";
-
-#define PASS_TOKEN_DEL  (-1)
-#define PASS_TOKEN_OK   (-2)
+static httpd_handle_t s_portal_httpd = NULL;
+static volatile bool s_portal_submitted = false;
+static char s_portal_ssid[33];
+static char s_portal_pass[65];
 #define OTA_TASK_STACK_BYTES      6144
 #define OTA_QR_TASK_STACK_BYTES   7168
+#define PORTAL_STACK_BYTES        4096
 
 static void ota_task_exit(void)
 {
@@ -119,6 +108,34 @@ static const char* ota_target_slug(void)
     return "go";
 }
 
+static void format_target_token(int index, char* out, size_t cap)
+{
+    if (!out || cap < 2) return;
+    out[0] = 0;
+    const char* name = AppSettings_OtaGameName(index);
+    if (index == (int)s_cfg.ota_game_sel) snprintf(out, cap, "[%s]", name);
+    else snprintf(out, cap, "%s", name);
+}
+
+static void draw_game_selector_rows(void)
+{
+    const int count = AppSettings_OtaGameCount();
+    char t0[20], t1[20], t2[20], t3[20];
+    format_target_token(0, t0, sizeof(t0));
+    format_target_token(1, t1, sizeof(t1));
+    format_target_token(2, t2, sizeof(t2));
+    format_target_token(3, t3, sizeof(t3));
+
+    char line0[64];
+    char line1[64];
+    snprintf(line0, sizeof(line0), "TARGET(LR) %s %s", t0, t1);
+    if (count > 2) snprintf(line1, sizeof(line1), "           %s %s", t2, (count > 3) ? t3 : "");
+    else snprintf(line1, sizeof(line1), "SEL: %s", AppSettings_OtaGameName(s_cfg.ota_game_sel));
+
+    Ui_DrawBodyTextRowColor(6, line0, c_info());
+    Ui_DrawBodyTextRowColor(7, line1, c_info());
+}
+
 static bool build_selected_ota_url(char* out, size_t cap)
 {
     if (!out || cap < 16) return false;
@@ -131,14 +148,22 @@ static bool build_selected_ota_url(char* out, size_t cap)
 
     const char* base = CONFIG_COMM_WIFI_OTA_URL;
     const char* marker = strstr(base, "/latest.bin");
-    if (!marker) {
+    if (!marker || marker[11] != '\0') {
         snprintf(out, cap, "%s", base);
         return true;
     }
 
-    int prefix_len = (int)(marker - base) + 1; // include trailing '/'
-    if (prefix_len <= 0) return false;
-    snprintf(out, cap, "%.*s%s/latest.bin", prefix_len, base, ota_target_slug());
+    // Only auto-expand when URL is in ".../ota/latest.bin" template form.
+    // If user config points to a fixed file such as ".../ota/go/latest.bin",
+    // keep it unchanged for direct remote-download testing.
+    if ((marker - base) >= 4 && strncmp(marker - 4, "/ota", 4) == 0) {
+        int prefix_len = (int)(marker - base) + 1; // include trailing '/'
+        if (prefix_len <= 0) return false;
+        snprintf(out, cap, "%.*s%s/latest.bin", prefix_len, base, ota_target_slug());
+        return true;
+    }
+
+    snprintf(out, cap, "%s", base);
     return true;
 }
 
@@ -164,20 +189,6 @@ static bool load_saved_pass(const char* ssid, char* out_pass, size_t cap)
     esp_err_t err = nvs_get_str(nvs, key, out_pass, &req);
     nvs_close(nvs);
     return err == ESP_OK && out_pass[0] != 0;
-}
-
-static void save_pass(const char* ssid, const char* pass)
-{
-    if (!ssid || !ssid[0] || !pass || !pass[0]) return;
-    nvs_handle_t nvs = 0;
-    if (nvs_open("syswifi", NVS_READWRITE, &nvs) != ESP_OK) return;
-
-    char key[16];
-    snprintf(key, sizeof(key), "p%08x", (unsigned)ssid_hash(ssid));
-    if (nvs_set_str(nvs, key, pass) == ESP_OK) {
-        nvs_commit(nvs);
-    }
-    nvs_close(nvs);
 }
 
 static const char* app_version(void)
@@ -238,7 +249,7 @@ static void draw_status_dynamic_rows(void)
     char line[64];
     char status_line[64];
 
-    if (s_state == kStateDownloading) {
+    if (s_state == kStateDownloading || s_state == kStateConnecting) {
         const char spinner[] = "|/-\\";
         int ph = s_anim_phase & 3;
         snprintf(status_line, sizeof(status_line), "Status: %c %.52s", spinner[ph], s_status);
@@ -259,40 +270,15 @@ static void draw_status_dynamic_rows(void)
     } else if (s_state == kStateConnecting && comm_wifi_is_connected()) {
         Ui_DrawBodyTextRowColor(4, "Press OK to start OTA", c_info());
     } else {
-        char line2[64];
-        snprintf(line2, sizeof(line2), "URL: %.56s", s_ota_url[0] ? s_ota_url : "(invalid)");
-        Ui_DrawBodyTextRowColor(4, line2, c_text());
-    }
-}
-
-static int pass_token_count(void)
-{
-    return (int)strlen(kPassChars) + 2;
-}
-
-static int pass_token_from_sel(int sel)
-{
-    int n = (int)strlen(kPassChars);
-    if (sel < n) return (int)kPassChars[sel];
-    if (sel == n) return PASS_TOKEN_DEL;
-    return PASS_TOKEN_OK;
-}
-
-static void rescan_aps(void)
-{
-    s_ap_count = comm_wifi_scan_top3(s_aps, 3);
-    if (s_ap_count <= 0) {
-        s_ap_count = 0;
-        s_ap_sel = 0;
-        set_state(kStateSelectAp, "No AP found. OK=rescan", 0);
-    } else {
-        if (s_ap_sel >= s_ap_count) s_ap_sel = 0;
-        set_state(kStateSelectAp, "Select AP then OK", 0);
+        Ui_DrawBodyTextRowColor(4, "WiFi: waiting connection", c_text());
     }
 }
 
 static bool perform_ota_http(const char* url, char* errbuf, size_t errcap)
 {
+    const uint32_t kUiReportMs = 1000U;
+    const uint32_t kStallTimeoutMs = 45000U;
+
     esp_http_client_config_t cfg = {
         .url = url,
         .timeout_ms = CONFIG_COMM_WIFI_OTA_HTTP_TIMEOUT_MS,
@@ -323,6 +309,8 @@ static bool perform_ota_http(const char* url, char* errbuf, size_t errcap)
     int content_len = -1;
     int downloaded = 0;
     int last_report_bucket = -1;
+    uint32_t last_ui_ms = now_ms();
+    uint32_t last_data_ms = last_ui_ms;
 
     esp_err_t err = esp_http_client_open(client, 0);
     if (err != ESP_OK) {
@@ -361,6 +349,7 @@ static bool perform_ota_http(const char* url, char* errbuf, size_t errcap)
         }
 
         downloaded += n;
+        last_data_ms = now_ms();
         int progress = 0;
         if (content_len > 0) {
             progress = (downloaded * 100) / content_len;
@@ -368,7 +357,8 @@ static bool perform_ota_http(const char* url, char* errbuf, size_t errcap)
         }
 
         int report_bucket = downloaded / 8192;
-        if (report_bucket != last_report_bucket) {
+        uint32_t now = now_ms();
+        if (report_bucket != last_report_bucket || (now - last_ui_ms) >= kUiReportMs) {
             char line[64];
             if (content_len > 0) {
                 snprintf(line, sizeof(line), "Downloading... %d%%", progress);
@@ -377,11 +367,22 @@ static bool perform_ota_http(const char* url, char* errbuf, size_t errcap)
             }
             set_state(kStateDownloading, line, progress);
             last_report_bucket = report_bucket;
+            last_ui_ms = now;
+        }
+
+        if ((now - last_data_ms) > kStallTimeoutMs) {
+            snprintf(errbuf, errcap, "download stalled");
+            goto cleanup;
         }
     }
 
     if (s_abort) {
         snprintf(errbuf, errcap, "aborted");
+        goto cleanup;
+    }
+
+    if (downloaded <= 0) {
+        snprintf(errbuf, errcap, "downloaded 0 bytes");
         goto cleanup;
     }
 
@@ -433,24 +434,12 @@ static void qr_capture_cb(const uint8_t* qrcode)
     s_qr_ready = true;
 }
 
-static void build_qr_payload(const char* service_name, const char* pop)
+static bool gen_qr_text_for_lcd(const char* text)
 {
-    if (pop && pop[0]) {
-        snprintf(s_qr_payload, sizeof(s_qr_payload),
-                 "{\"ver\":\"v1\",\"name\":\"%s\",\"pop\":\"%s\",\"transport\":\"softap\"}",
-                 service_name, pop);
-    } else {
-        snprintf(s_qr_payload, sizeof(s_qr_payload),
-                 "{\"ver\":\"v1\",\"name\":\"%s\",\"transport\":\"softap\"}",
-                 service_name);
-    }
-}
-
-static bool gen_qr_for_lcd(const char* service_name, const char* pop)
-{
+    if (!text || !text[0]) return false;
     s_qr_ready = false;
     s_qr_size = 0;
-    build_qr_payload(service_name, pop);
+    snprintf(s_qr_payload, sizeof(s_qr_payload), "%s", text);
 
     esp_qrcode_config_t cfg = ESP_QRCODE_CONFIG_DEFAULT();
     cfg.display_func = qr_capture_cb;
@@ -473,6 +462,152 @@ static void free_qr_matrix(void)
         s_qr_matrix = NULL;
     }
     s_qr_matrix_cap = 0;
+}
+
+static int hexv(char c)
+{
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+    return -1;
+}
+
+static void url_decode_inplace(char* s)
+{
+    if (!s) return;
+    char* r = s;
+    char* w = s;
+    while (*r) {
+        if (*r == '+') {
+            *w++ = ' ';
+            r++;
+            continue;
+        }
+        if (r[0] == '%' && r[1] && r[2]) {
+            int hi = hexv(r[1]);
+            int lo = hexv(r[2]);
+            if (hi >= 0 && lo >= 0) {
+                *w++ = (char)((hi << 4) | lo);
+                r += 3;
+                continue;
+            }
+        }
+        *w++ = *r++;
+    }
+    *w = 0;
+}
+
+static bool parse_form_value(const char* body, const char* key, char* out, size_t cap)
+{
+    if (!body || !key || !out || cap < 2) return false;
+    out[0] = 0;
+
+    size_t klen = strlen(key);
+    const char* p = body;
+    while (*p) {
+        const char* eq = strchr(p, '=');
+        if (!eq) break;
+        const char* amp = strchr(eq + 1, '&');
+        size_t name_len = (size_t)(eq - p);
+        if (name_len == klen && strncmp(p, key, klen) == 0) {
+            size_t vlen = amp ? (size_t)(amp - (eq + 1)) : strlen(eq + 1);
+            if (vlen >= cap) vlen = cap - 1;
+            memcpy(out, eq + 1, vlen);
+            out[vlen] = 0;
+            url_decode_inplace(out);
+            return out[0] != 0;
+        }
+        if (!amp) break;
+        p = amp + 1;
+    }
+    return false;
+}
+
+static esp_err_t portal_root_get(httpd_req_t* req)
+{
+    const char* html =
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        "<title>SOY_GAME_TECK</title></head><body>"
+        "<h3>SOY_GAME_TECK Wi-Fi Setup</h3>"
+        "<p>Input your router Wi-Fi (SSID/password)</p>"
+        "<form method='POST' action='/wifi'>"
+        "<label>SSID</label><br><input name='ssid' style='width:260px' maxlength='32' required><br><br>"
+        "<label>Password</label><br><input name='pass' type='password' style='width:260px' maxlength='64' required><br><br>"
+        "<button type='submit' style='height:38px'>Connect</button>"
+        "</form></body></html>";
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req, html, HTTPD_RESP_USE_STRLEN);
+}
+
+static esp_err_t portal_wifi_post(httpd_req_t* req)
+{
+    char body[256];
+    int total = req->content_len;
+    if (total <= 0 || total >= (int)sizeof(body)) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "bad body");
+        return ESP_OK;
+    }
+
+    int got = 0;
+    while (got < total) {
+        int r = httpd_req_recv(req, body + got, total - got);
+        if (r <= 0) {
+            httpd_resp_send_err(req, HTTPD_500_INTERNAL_SERVER_ERROR, "recv fail");
+            return ESP_OK;
+        }
+        got += r;
+    }
+    body[got] = 0;
+
+    char ssid[33] = {0};
+    char pass[65] = {0};
+    bool ok_ssid = parse_form_value(body, "ssid", ssid, sizeof(ssid));
+    bool ok_pass = parse_form_value(body, "pass", pass, sizeof(pass));
+    if (!ok_ssid || !ok_pass) {
+        httpd_resp_send_err(req, HTTPD_400_BAD_REQUEST, "ssid/pass required");
+        return ESP_OK;
+    }
+
+    strncpy(s_portal_ssid, ssid, sizeof(s_portal_ssid) - 1);
+    s_portal_ssid[sizeof(s_portal_ssid) - 1] = 0;
+    strncpy(s_portal_pass, pass, sizeof(s_portal_pass) - 1);
+    s_portal_pass[sizeof(s_portal_pass) - 1] = 0;
+    s_portal_submitted = true;
+
+    httpd_resp_set_type(req, "text/html");
+    return httpd_resp_send(req,
+                           "<html><body><h3>Saved</h3><p>Device is connecting...</p></body></html>",
+                           HTTPD_RESP_USE_STRLEN);
+}
+
+static bool portal_start(void)
+{
+    if (!comm_wifi_switch_to_ap_open(kProvServiceName)) return false;
+    if (s_portal_httpd) return true;
+
+    httpd_config_t cfg = HTTPD_DEFAULT_CONFIG();
+    cfg.stack_size = PORTAL_STACK_BYTES;
+    cfg.max_uri_handlers = 4;
+    if (httpd_start(&s_portal_httpd, &cfg) != ESP_OK) {
+        s_portal_httpd = NULL;
+        return false;
+    }
+
+    httpd_uri_t root = {.uri="/", .method=HTTP_GET, .handler=portal_root_get, .user_ctx=NULL};
+    httpd_uri_t wifi = {.uri="/wifi", .method=HTTP_POST, .handler=portal_wifi_post, .user_ctx=NULL};
+    httpd_register_uri_handler(s_portal_httpd, &root);
+    httpd_register_uri_handler(s_portal_httpd, &wifi);
+    return true;
+}
+
+static void portal_stop(void)
+{
+    if (s_portal_httpd) {
+        httpd_stop(s_portal_httpd);
+        s_portal_httpd = NULL;
+    }
+    (void)comm_wifi_switch_to_sta_only();
 }
 
 static void draw_qr_on_lcd(void)
@@ -513,130 +648,120 @@ static void draw_qr_on_lcd(void)
     }
 }
 
-static bool run_qr_provision(char* errbuf, size_t errcap)
+static bool run_portal_provision(char* errbuf, size_t errcap)
 {
-    const char* service_name = "SYSTEM_PROV";
-    const char* pop = "SEESAW2026";
+    (void)kProvPop;
+    s_portal_submitted = false;
+    s_portal_ssid[0] = 0;
+    s_portal_pass[0] = 0;
 
-    wifi_prov_mgr_config_t cfg = {
-        .scheme = wifi_prov_scheme_softap,
-        .scheme_event_handler = WIFI_PROV_EVENT_HANDLER_NONE
-    };
-
-    esp_err_t err = wifi_prov_mgr_init(cfg);
-    if (err != ESP_OK) {
-        snprintf(errbuf, errcap, "prov init: %s", esp_err_to_name(err));
+    if (!portal_start()) {
+        snprintf(errbuf, errcap, "portal start failed");
         return false;
     }
 
-    bool provisioned = false;
-    err = wifi_prov_mgr_is_provisioned(&provisioned);
-    if (err != ESP_OK) {
-        snprintf(errbuf, errcap, "prov state: %s", esp_err_to_name(err));
-        wifi_prov_mgr_deinit();
-        return false;
-    }
+    (void)gen_qr_text_for_lcd(kPortalUrl);
+    set_state(kStatePortalProvision, "Scan QR to provision WiFi", 0);
 
-    if (!provisioned) {
-        set_state(kStateQrProvision, "Scan QR with ESP SoftAP app", 0);
-        if (!gen_qr_for_lcd(service_name, pop)) {
-            set_state(kStateFail, "QR generate failed", 0);
-            wifi_prov_mgr_deinit();
-            return false;
-        }
-        err = wifi_prov_mgr_start_provisioning(WIFI_PROV_SECURITY_1, pop, service_name, NULL);
-        if (err != ESP_OK) {
-            snprintf(errbuf, errcap, "prov start: %s", esp_err_to_name(err));
-            wifi_prov_mgr_deinit();
-            return false;
-        }
-    } else {
-        set_state(kStateQrProvision, "Already provisioned, connecting", 0);
-    }
-
-    comm_wifi_start();
     uint32_t t0 = now_ms();
-    while (!s_abort && !comm_wifi_is_connected()) {
-        if ((now_ms() - t0) > 120000U) {
-            snprintf(errbuf, errcap, "provision timeout");
-            wifi_prov_mgr_stop_provisioning();
-            wifi_prov_mgr_deinit();
+    while (!s_abort && !s_portal_submitted) {
+        if ((now_ms() - t0) > 180000U) {
+            portal_stop();
+            snprintf(errbuf, errcap, "portal timeout");
             return false;
         }
         vTaskDelay(pdMS_TO_TICKS(120));
     }
-
-    wifi_prov_mgr_stop_provisioning();
-    wifi_prov_mgr_deinit();
-    return !s_abort;
-}
-
-static void ota_task(void* arg)
-{
-    (void)arg;
-    char err[64] = {0};
-    char ssid[33];
-    char pass[33];
-
-    strncpy(ssid, s_sel_ssid, sizeof(ssid) - 1);
-    ssid[sizeof(ssid) - 1] = 0;
-    strncpy(pass, s_pass, sizeof(pass) - 1);
-    pass[sizeof(pass) - 1] = 0;
-
-    if (!ssid[0]) {
-        set_state(kStateFail, "No AP selected", 0);
-        ota_task_exit();
-        return;
-    }
-
-    if (!build_selected_ota_url(s_ota_url, sizeof(s_ota_url))) {
-        set_state(kStateFail, "Set valid OTA URL", 0);
-        ota_task_exit();
-        return;
+    if (s_abort) {
+        portal_stop();
+        return false;
     }
 
     set_state(kStateConnecting, "Connecting WiFi...", 0);
+
+    if (!comm_wifi_switch_to_sta_only()) {
+        portal_stop();
+        snprintf(errbuf, errcap, "switch sta failed");
+        return false;
+    }
+    if (!comm_wifi_connect_psk(s_portal_ssid, s_portal_pass)) {
+        portal_stop();
+        snprintf(errbuf, errcap, "wifi connect start failed");
+        return false;
+    }
+    (void)comm_wifi_save_credential(s_portal_ssid, s_portal_pass);
+
+    t0 = now_ms();
+    while (!s_abort && !comm_wifi_is_connected()) {
+        if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) {
+            portal_stop();
+            snprintf(errbuf, errcap, "wifi connect timeout");
+            return false;
+        }
+        vTaskDelay(pdMS_TO_TICKS(120));
+    }
+    portal_stop();
+    return !s_abort;
+}
+
+static bool auto_connect_with_saved(char* errbuf, size_t errcap)
+{
     comm_wifi_start();
-    if (!comm_wifi_connect_psk(ssid, pass)) {
-        set_state(kStateFail, "WiFi connect start failed", 0);
-        ota_task_exit();
-        return;
+
+    if (comm_wifi_is_connected()) {
+        if (!comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid))) {
+            s_sel_ssid[0] = 0;
+        }
+        return true;
     }
 
     uint32_t t0 = now_ms();
-    while (!s_abort && !comm_wifi_is_connected()) {
-        if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) {
-            set_state(kStateFail, "WiFi connect timeout", 0);
-            ota_task_exit();
-            return;
+    while (!s_abort) {
+        CommWifiAp aps[3];
+        int ap_count = comm_wifi_scan_top3(aps, 3);
+        if (ap_count <= 0) {
+            int progress = (int)(((now_ms() - t0) * 100U) / (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS);
+            if (progress > 99) progress = 99;
+            set_state(kStateConnecting, "Searching AP...", progress);
+            if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
+            vTaskDelay(pdMS_TO_TICKS(200));
+            continue;
         }
-        vTaskDelay(pdMS_TO_TICKS(100));
+
+        for (int i = 0; i < ap_count && !s_abort; i++) {
+            char pass[33] = {0};
+            if (!load_saved_pass(aps[i].ssid, pass, sizeof(pass))) continue;
+
+            strncpy(s_sel_ssid, aps[i].ssid, sizeof(s_sel_ssid) - 1);
+            s_sel_ssid[sizeof(s_sel_ssid) - 1] = 0;
+
+            char st[64];
+            snprintf(st, sizeof(st), "Connecting %.30s...", s_sel_ssid);
+            set_state(kStateConnecting, st, 0);
+
+            if (!comm_wifi_connect_psk(s_sel_ssid, pass)) continue;
+
+            uint32_t t_connect = now_ms();
+            while (!s_abort && !comm_wifi_is_connected()) {
+                uint32_t elapsed = now_ms() - t_connect;
+                int progress = (int)((elapsed * 100U) / (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS);
+                if (progress > 99) progress = 99;
+                set_state(kStateConnecting, st, progress);
+                if (elapsed > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
+                vTaskDelay(pdMS_TO_TICKS(100));
+            }
+            if (comm_wifi_is_connected()) return true;
+        }
+
+        if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
+        vTaskDelay(pdMS_TO_TICKS(120));
     }
 
-    if (s_abort) {
-        set_state(kStateFail, "Upgrade canceled", 0);
-        ota_task_exit();
-        return;
-    }
-
-    // Cache password for this SSID after connection succeeds.
-    save_pass(ssid, pass);
-
-    set_state(kStateDownloading, "Downloading... 0%", 0);
-    ESP_LOGI(TAG, "OTA URL: %s", s_ota_url);
-    if (!perform_ota_http(s_ota_url, err, sizeof(err))) {
-        set_state(kStateFail, err[0] ? err : "OTA failed", 0);
-        ota_task_exit();
-        return;
-    }
-
-    Sfx_PlayVictory();
-    set_state(kStateSuccess, "Upgrade success. Rebooting...", 100);
-    vTaskDelay(pdMS_TO_TICKS(1200));
-    esp_restart();
+    snprintf(errbuf, errcap, "WiFi connect timeout");
+    return false;
 }
 
-static void qr_ota_task(void* arg)
+static void ota_prepare_task(void* arg)
 {
     (void)arg;
     char err[64] = {0};
@@ -647,24 +772,25 @@ static void qr_ota_task(void* arg)
         return;
     }
 
-    if (!run_qr_provision(err, sizeof(err))) {
-        set_state(kStateFail, err[0] ? err : "QR provision failed", 0);
-        ota_task_exit();
-        return;
+    set_state(kStateConnecting, "Searching WiFi...", 0);
+
+    if (!auto_connect_with_saved(err, sizeof(err))) {
+        if (!run_portal_provision(err, sizeof(err))) {
+            set_state(kStateFail, err[0] ? err : "QR provision failed", 0);
+            ota_task_exit();
+            return;
+        }
     }
 
-    set_state(kStateDownloading, "Downloading... 0%", 0);
-    ESP_LOGI(TAG, "OTA URL: %s", s_ota_url);
-    if (!perform_ota_http(s_ota_url, err, sizeof(err))) {
-        set_state(kStateFail, err[0] ? err : "OTA failed", 0);
-        ota_task_exit();
-        return;
+    if (comm_wifi_is_connected()) {
+        if (!comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid))) {
+            s_sel_ssid[0] = 0;
+        }
+        set_state(kStateConnecting, "WiFi ready. OK to start OTA", 100);
+    } else {
+        set_state(kStateFail, "WiFi not connected", 0);
     }
-
-    Sfx_PlayVictory();
-    set_state(kStateSuccess, "Upgrade success. Rebooting...", 100);
-    vTaskDelay(pdMS_TO_TICKS(1200));
-    esp_restart();
+    ota_task_exit();
 }
 
 static void ota_task_connected(void* arg)
@@ -703,10 +829,9 @@ static void draw_ui(void)
     if (s_page != kSettingPageOta) return;
 
     char line[64];
-    char masked[33] = {0};
 
     if (s_need_full_redraw) {
-        Ui_DrawFrame(kSystemTitle, "LR:TARGET UD:SEL OK:GO BACK");
+        Ui_DrawFrame(kSystemTitle, "LR:TARGET OK:GO BACK");
         Ui_DrawBodyClear();
     }
 
@@ -715,49 +840,14 @@ static void draw_ui(void)
         snprintf(line, sizeof(line), "VER: %.58s", app_version());
         Ui_DrawBodyTextRowColor(0, line, c_info());
         Ui_DrawBodyTextRowColor(1, kSystemCopyright, c_info());
-        snprintf(line, sizeof(line), "GAME: %s", AppSettings_OtaGameName(s_cfg.ota_game_sel));
-        Ui_DrawBodyTextRowColor(7, line, c_info());
+        draw_game_selector_rows();
     }
 
-    if (s_state == kStateSelectAp) {
-        Ui_DrawBodyTextRowColor(2, "AP List:", c_text());
-        if (s_ap_count <= 0) {
-            Ui_DrawBodyTextRowColor(3, "No AP found", c_err());
-            Ui_DrawBodyTextRowColor(4, "Press OK to rescan", c_text());
-        } else {
-            for (int i = 0; i < s_ap_count && i < 3; i++) {
-                char ap_line[64];
-                snprintf(ap_line, sizeof(ap_line), "%c %s (%d)",
-                         (i == s_ap_sel) ? '>' : ' ', s_aps[i].ssid, s_aps[i].rssi);
-                Ui_DrawBodyTextRowColor(3 + i, ap_line, c_text());
-            }
-            Ui_DrawBodyTextRowColor(6, "OK: auto/saved pass", c_text());
-        }
-        return;
-    }
-
-    if (s_state == kStateEditPass) {
-        snprintf(line, sizeof(line), "SSID: %s", s_sel_ssid);
-        Ui_DrawBodyTextRowColor(2, line, c_text());
-
-        for (int i = 0; i < s_pass_len && i < (int)sizeof(masked) - 1; i++) masked[i] = '*';
-        masked[s_pass_len] = 0;
-        snprintf(line, sizeof(line), "PASS[%d]: %s", s_pass_len, masked[0] ? masked : "(empty)");
-        Ui_DrawBodyTextRowColor(3, line, c_text());
-
-        int tok = pass_token_from_sel(s_pass_sel);
-        if (tok == PASS_TOKEN_DEL) snprintf(line, sizeof(line), "SEL: <DEL>");
-        else if (tok == PASS_TOKEN_OK) snprintf(line, sizeof(line), "SEL: <CONNECT>");
-        else snprintf(line, sizeof(line), "SEL: '%c'", (char)tok);
-        Ui_DrawBodyTextRowColor(4, line, c_text());
-        Ui_DrawBodyTextRowColor(5, "OK:add/del/connect", c_text());
-        return;
-    }
-
-    if (s_state == kStateQrProvision) {
-        Ui_DrawBodyTextRowColor(2, "QR Provisioning...", c_text());
-        Ui_DrawBodyTextRowColor(3, "Scan this code with app", c_info());
-        Ui_DrawBodyTextRowColor(4, "APP: Espressif SoftAP", c_info());
+    if (s_state == kStatePortalProvision) {
+        Ui_DrawBodyTextRowColor(2, "WiFi Portal Mode", c_text());
+        Ui_DrawBodyTextRowColor(3, "AP: SOY_GAME_TECK", c_info());
+        Ui_DrawBodyTextRowColor(4, "Scan QR to configure WiFi", c_info());
+        Ui_DrawBodyTextRowColor(5, "Connect AP then submit form", c_text());
         draw_qr_on_lcd();
         return;
     }
@@ -769,12 +859,16 @@ static void draw_ui(void)
 
     draw_status_dynamic_rows();
 
+    if (s_state == kStateConnecting) {
+        draw_progress_bar(s_progress, true);
+    }
+
     if (s_state == kStateConnecting && comm_wifi_is_connected()) {
-        Ui_DrawBodyTextRowColor(5, "OK: start OTA  DN: forget WiFi", c_text());
+        Ui_DrawBodyTextRowColor(5, "OK: start OTA", c_text());
     }
 
     if (s_state == kStateFail) {
-        Ui_DrawBodyTextRowColor(5, "OK: rescan AP", c_text());
+        Ui_DrawBodyTextRowColor(5, "OK: retry auto flow", c_text());
     }
 
     s_need_full_redraw = false;
@@ -848,18 +942,13 @@ static void start(ExperimentContext* ctx)
 
     s_abort = false;
     s_progress = 0;
-    s_ap_count = 0;
-    s_ap_sel = 0;
     s_sel_ssid[0] = 0;
-    s_pass[0] = 0;
-    s_pass_len = 0;
-    s_pass_sel = 0;
     s_qr_ready = false;
     s_qr_size = 0;
     s_qr_payload[0] = 0;
     s_ota_url[0] = 0;
     (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url));
-    strncpy(s_status, "Select AP", sizeof(s_status) - 1);
+    strncpy(s_status, "Searching WiFi...", sizeof(s_status) - 1);
     s_status[sizeof(s_status) - 1] = 0;
     s_need_full_redraw = true;
     s_last_anim_ms = 0;
@@ -896,14 +985,13 @@ static void on_key(ExperimentContext* ctx, InputKey key)
             if (s_home_sel == 0) {
                 s_page = kSettingPageOta;
                 (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url));
-                comm_wifi_start();
-                if (comm_wifi_is_connected()) {
-                    if (!comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid))) {
-                        s_sel_ssid[0] = 0;
+                set_state(kStateConnecting, "Searching WiFi...", 0);
+                s_abort = false;
+                if (!s_ota_task) {
+                    if (xTaskCreate(ota_prepare_task, "ota_prepare_task", OTA_QR_TASK_STACK_BYTES,
+                                    NULL, 4, &s_ota_task) != pdPASS) {
+                        set_state(kStateFail, "Prepare task create failed", 0);
                     }
-                    set_state(kStateConnecting, "WiFi ready. OK to start OTA", 0);
-                } else {
-                    rescan_aps();
                 }
                 s_ui_dirty = true;
                 draw_ui();
@@ -1026,102 +1114,15 @@ static void on_key(ExperimentContext* ctx, InputKey key)
         return;
     }
 
-    if (s_state == kStateConnecting && comm_wifi_is_connected() && key == kInputDown) {
-        if (comm_wifi_forget_saved_and_disconnect()) {
-            s_sel_ssid[0] = 0;
-            s_pass[0] = 0;
-            s_pass_len = 0;
-            set_state(kStateSelectAp, "WiFi forgotten. Reconnect required", 0);
-            rescan_aps();
-        } else {
-            set_state(kStateFail, "Forget WiFi failed", 0);
-        }
-        return;
-    }
-
-    if (s_state == kStateSelectAp) {
-        if (key == kInputUp && s_ap_count > 0) {
-            s_ap_sel--;
-            if (s_ap_sel < 0) s_ap_sel = s_ap_count - 1;
-            s_ui_dirty = true;
-            return;
-        }
-        if (key == kInputDown && s_ap_count > 0) {
-            s_ap_sel++;
-            if (s_ap_sel >= s_ap_count) s_ap_sel = 0;
-            s_ui_dirty = true;
-            return;
-        }
-        if (key == kInputEnter) {
-            if (s_ap_count <= 0) {
-                rescan_aps();
-                return;
-            }
-            strncpy(s_sel_ssid, s_aps[s_ap_sel].ssid, sizeof(s_sel_ssid) - 1);
-            s_sel_ssid[sizeof(s_sel_ssid) - 1] = 0;
-            if (load_saved_pass(s_sel_ssid, s_pass, sizeof(s_pass))) {
-                s_pass_len = (int)strlen(s_pass);
-                s_abort = false;
-                set_state(kStateConnecting, "Using saved password...", 0);
-                if (xTaskCreate(ota_task, "ota_task", OTA_TASK_STACK_BYTES, NULL, 4, &s_ota_task) != pdPASS) {
-                    set_state(kStateFail, "OTA task create failed", 0);
-                }
-            } else {
-                s_abort = false;
-                set_state(kStateQrProvision, "Starting QR provision...", 0);
-                if (xTaskCreate(qr_ota_task, "qr_ota_task", OTA_QR_TASK_STACK_BYTES, NULL, 4, &s_ota_task) != pdPASS) {
-                    set_state(kStateFail, "QR task create failed", 0);
-                }
-            }
-            return;
-        }
-        return;
-    }
-
-    if (s_state == kStateEditPass) {
-        int n = pass_token_count();
-        if (key == kInputUp) {
-            s_pass_sel--;
-            if (s_pass_sel < 0) s_pass_sel = n - 1;
-            s_ui_dirty = true;
-            return;
-        }
-        if (key == kInputDown) {
-            s_pass_sel++;
-            if (s_pass_sel >= n) s_pass_sel = 0;
-            s_ui_dirty = true;
-            return;
-        }
-        if (key == kInputEnter) {
-            int tok = pass_token_from_sel(s_pass_sel);
-            if (tok == PASS_TOKEN_DEL) {
-                if (s_pass_len > 0) {
-                    s_pass_len--;
-                    s_pass[s_pass_len] = 0;
-                }
-                s_ui_dirty = true;
-                return;
-            }
-            if (tok == PASS_TOKEN_OK) {
-                s_abort = false;
-                set_state(kStateConnecting, "Connecting WiFi...", 0);
-                if (xTaskCreate(ota_task, "ota_task", OTA_TASK_STACK_BYTES, NULL, 4, &s_ota_task) != pdPASS) {
-                    set_state(kStateFail, "OTA task create failed", 0);
-                }
-                return;
-            }
-            if (s_pass_len < (int)sizeof(s_pass) - 1) {
-                s_pass[s_pass_len++] = (char)tok;
-                s_pass[s_pass_len] = 0;
-            }
-            s_ui_dirty = true;
-            return;
-        }
-        return;
-    }
-
     if (s_state == kStateFail && key == kInputEnter) {
-        rescan_aps();
+        set_state(kStateConnecting, "Searching WiFi...", 0);
+        s_abort = false;
+        if (!s_ota_task) {
+            if (xTaskCreate(ota_prepare_task, "ota_prepare_task", OTA_QR_TASK_STACK_BYTES,
+                            NULL, 4, &s_ota_task) != pdPASS) {
+                set_state(kStateFail, "Prepare task create failed", 0);
+            }
+        }
     }
 }
 
@@ -1130,7 +1131,7 @@ static void tick(ExperimentContext* ctx)
     (void)ctx;
     if (s_page != kSettingPageOta) return;
     uint32_t t = now_ms();
-    if (s_state == kStateDownloading) {
+    if (s_state == kStateDownloading || s_state == kStateConnecting) {
         if ((t - s_last_anim_ms) >= 120U) {
             s_last_anim_ms = t;
             s_anim_phase++;
