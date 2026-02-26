@@ -17,9 +17,44 @@ PROJECT_BIN="game_console_idf61_ili9341.bin"
 TARGET_FILTER_RAW="${1:-ALL}"
 TARGET_FILTER="${TARGET_FILTER_RAW^^}"
 VERSION_OVERRIDE="${2:-}"
+VERSION_SOURCE="unknown"
+MODE_RAW="${3:-AUTO}"
+MODE="${MODE_RAW^^}"
+
+PUBLIC_OTA_REPO_URL="${PUBLIC_OTA_REPO_URL:-git@github.com:git-beginner-123/OTA.git}"
+PUBLIC_OTA_REPO_DIR="${PUBLIC_OTA_REPO_DIR:-/tmp/game_ota_public_repo}"
+PUBLIC_OTA_SUBDIR="${PUBLIC_OTA_SUBDIR:-ota}"
+
+PUSH_PRIVATE=0
+PUSH_PUBLIC=1
+
+case "${MODE}" in
+  ""|AUTO)
+    PUSH_PRIVATE=0
+    PUSH_PUBLIC=1
+    ;;
+  PUSH|BOTH)
+    PUSH_PRIVATE=1
+    PUSH_PUBLIC=1
+    ;;
+  PUBLIC|OTA)
+    PUSH_PRIVATE=0
+    PUSH_PUBLIC=1
+    ;;
+  LOCAL|NOREMOTE)
+    PUSH_PRIVATE=0
+    PUSH_PUBLIC=0
+    ;;
+  *)
+    echo "[WARN] unknown mode '${MODE_RAW}', fallback to AUTO"
+    PUSH_PRIVATE=0
+    PUSH_PUBLIC=1
+    ;;
+esac
 
 detect_version() {
   if [[ -n "${VERSION_OVERRIDE}" ]]; then
+    VERSION_SOURCE="override(arg2)"
     echo "${VERSION_OVERRIDE}"
     return 0
   fi
@@ -27,14 +62,17 @@ detect_version() {
     local v
     v="$(git describe --tags --always --dirty 2>/dev/null || true)"
     if [[ -n "$v" ]]; then
+      VERSION_SOURCE="git describe --tags --always --dirty"
       echo "$v"
       return 0
     fi
   fi
+  VERSION_SOURCE="fallback"
   echo "v0.0.0-local"
 }
 
 VERSION="$(detect_version)"
+echo "[INFO] VERSION=${VERSION} (source: ${VERSION_SOURCE})"
 
 is_selected() {
   local type_id="$1"
@@ -66,6 +104,120 @@ build_one() {
   sha256sum "${out_dir}/app-${VERSION}-t${type_id}.bin" > "${out_dir}/app-${VERSION}-t${type_id}.sha256"
 }
 
+maybe_push_private_repo() {
+  if [[ "${PUSH_PRIVATE}" -ne 1 ]]; then
+    return 0
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "[WARN] git not found, skip private push"
+    return 0
+  fi
+
+  local branch
+  branch="$(git branch --show-current 2>/dev/null || true)"
+  if [[ -z "${branch}" ]]; then
+    echo "[WARN] cannot detect branch, skip private push"
+    return 0
+  fi
+
+  git add ota
+  if git diff --cached --quiet; then
+    echo "[PUSH] private repo ota unchanged, nothing to commit"
+    return 0
+  fi
+
+  git commit -m "ota: update bins (${VERSION})"
+  git push origin "${branch}"
+  echo "[PUSH] private repo pushed: origin/${branch}"
+}
+
+publish_to_public_ota_repo() {
+  if [[ "${PUSH_PUBLIC}" -ne 1 ]]; then
+    return 0
+  fi
+
+  if ! command -v git >/dev/null 2>&1; then
+    echo "[WARN] git not found, skip public ota publish"
+    return 0
+  fi
+
+  local repo_dir="${PUBLIC_OTA_REPO_DIR}"
+  local repo_url="${PUBLIC_OTA_REPO_URL}"
+  local subdir="${PUBLIC_OTA_SUBDIR}"
+  local branch
+  local has_head=0
+  local remote_branch_exists=0
+
+  echo "[PUBLIC] sync ota/* to ${repo_url} (${repo_dir}/${subdir})"
+
+  if [[ ! -d "${repo_dir}/.git" ]]; then
+    rm -rf "${repo_dir}"
+    git clone "${repo_url}" "${repo_dir}"
+  else
+    git -C "${repo_dir}" remote set-url origin "${repo_url}"
+  fi
+
+  if git -C "${repo_dir}" rev-parse --verify HEAD >/dev/null 2>&1; then
+    has_head=1
+  fi
+
+  if [[ "${has_head}" -eq 1 ]]; then
+    branch="$(git -C "${repo_dir}" branch --show-current 2>/dev/null || true)"
+    if [[ -z "${branch}" ]]; then
+      branch="$(git -C "${repo_dir}" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
+    fi
+    if [[ -z "${branch}" ]]; then
+      branch="master"
+    fi
+    if git -C "${repo_dir}" fetch origin --prune; then
+      if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+        remote_branch_exists=1
+      elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/master"; then
+        branch="master"
+        remote_branch_exists=1
+      elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/main"; then
+        branch="main"
+        remote_branch_exists=1
+      else
+        echo "[PUBLIC] no remote branch found, will continue with local ${branch}"
+      fi
+    else
+      echo "[PUBLIC] fetch failed, continue with local ${branch}"
+    fi
+    git -C "${repo_dir}" checkout "${branch}"
+    if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+      git -C "${repo_dir}" merge --ff-only "origin/${branch}"
+    fi
+  else
+    branch="master"
+    echo "[PUBLIC] empty repo detected, bootstrap branch ${branch}"
+    git -C "${repo_dir}" checkout --orphan "${branch}"
+    git -C "${repo_dir}" rm -rf . >/dev/null 2>&1 || true
+  fi
+
+  rm -rf "${repo_dir}/${subdir}"
+  cp -a ota "${repo_dir}/${subdir}"
+
+  git -C "${repo_dir}" add "${subdir}"
+  if git -C "${repo_dir}" diff --cached --quiet; then
+    echo "[PUBLIC] ota unchanged, nothing to commit"
+    if [[ "${remote_branch_exists}" -eq 0 ]]; then
+      echo "[PUBLIC] first push for branch ${branch}"
+      git -C "${repo_dir}" push -u origin "${branch}"
+    fi
+    return 0
+  fi
+
+  git -C "${repo_dir}" commit -m "ota: update bins (${VERSION})"
+  if [[ "${has_head}" -eq 1 && "${remote_branch_exists}" -eq 1 ]]; then
+    git -C "${repo_dir}" push origin "${branch}"
+  else
+    git -C "${repo_dir}" push -u origin "${branch}"
+  fi
+  echo "[PUBLIC] pushed ota to ${repo_url}@${branch}"
+}
+
 mkdir -p ota
 cat > ota/targets.txt <<EOF
 1 GO go
@@ -87,6 +239,9 @@ if is_selected 4 gomoku GOMOKU; then
   build_one GOMOKU gomoku 4
 fi
 
+maybe_push_private_repo
+publish_to_public_ota_repo
+
 echo
 echo "[DONE] Generated:"
 echo "  ota/go/*"
@@ -100,6 +255,9 @@ echo "  ./build_variants_ota.sh 1"
 echo "  ./build_variants_ota.sh GO"
 echo "  ./build_variants_ota.sh ALL"
 echo "  ./build_variants_ota.sh ALL v1.2.8   # optional version override for artifact file names"
+echo "  ./build_variants_ota.sh ALL v1.2.8         # default: publish ota to PUBLIC repo"
+echo "  ./build_variants_ota.sh ALL v1.2.8 PUSH    # publish to PUBLIC + private current repo"
+echo "  ./build_variants_ota.sh ALL v1.2.8 LOCAL   # no git push, local build only"
 echo
 echo "Flash hints:"
 echo "  ./flash_variant.sh <type|name|ALL> /dev/ttyACM0 [--no-monitor]"
