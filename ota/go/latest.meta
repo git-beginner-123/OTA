@@ -1,6 +1,6 @@
-project_ver=V1.12
+project_ver=V1.13
 artifact_version=af75125-dirty
-display_version=V1.12
+display_version=V1.13
 source_git=af75125
 variant=GO
 target=go
