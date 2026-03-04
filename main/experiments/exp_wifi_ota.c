@@ -14,7 +14,6 @@
 #include "esp_timer.h"
 #include "esp_crt_bundle.h"
 #include "esp_app_desc.h"
-#include "nvs.h"
 #include "esp_http_server.h"
 #include "display/st7789.h"
 #include "qrcode.h"
@@ -33,6 +32,7 @@ static const char* kSystemCopyright = "Copyright (C) 2026 SOY-GAME-TECH";
 static const char* kProvServiceName = "SOY_GAME_TECK";
 static const char* kProvPop = "SEESAW2026";
 static const char* kPortalUrl = "http://192.168.4.1";
+static const char* kOtaLatestBase = "https://raw.githubusercontent.com/git-beginner-123/OTA/main/ota";
 
 typedef enum {
     kSettingPageHome = 0,
@@ -49,6 +49,7 @@ static AppSettings s_cfg;
 typedef enum {
     kStatePortalProvision = 0,
     kStateConnecting,
+    kStateConnected,
     kStateDownloading,
     kStateSuccess,
     kStateFail,
@@ -75,6 +76,17 @@ static httpd_handle_t s_portal_httpd = NULL;
 static volatile bool s_portal_submitted = false;
 static char s_portal_ssid[33];
 static char s_portal_pass[65];
+
+typedef enum {
+    kOtaTargetGo = 0,
+    kOtaTargetChess,
+    kOtaTargetGomoku,
+    kOtaTargetDice,
+    kOtaTargetStem,
+    kOtaTargetCount,
+} OtaTarget;
+
+static OtaTarget s_ota_target = kOtaTargetGo;
 #define OTA_TASK_STACK_BYTES      6144
 #define OTA_QR_TASK_STACK_BYTES   7168
 #define PORTAL_STACK_BYTES        4096
@@ -99,96 +111,111 @@ static uint16_t c_info(void) { return Ui_ColorRGB(170, 210, 255); }
 static uint16_t c_qr_bg(void) { return Ui_ColorRGB(250, 250, 250); }
 static uint16_t c_qr_fg(void) { return Ui_ColorRGB(10, 10, 10); }
 
-static const char* ota_target_slug(void)
+static const char* ota_target_name(OtaTarget t)
 {
-    if (s_cfg.ota_game_sel == 0) return "go";
-    if (s_cfg.ota_game_sel == 1) return "chess";
-    if (s_cfg.ota_game_sel == 2) return "dice";
-    if (s_cfg.ota_game_sel == 3) return "gomoku";
-    return "go";
+    switch (t) {
+    case kOtaTargetGo: return "GO";
+    case kOtaTargetChess: return "CHESS";
+    case kOtaTargetGomoku: return "GOMOKU";
+    case kOtaTargetDice: return "DICE";
+    case kOtaTargetStem: return "STEM";
+    default: return "STEM";
+    }
 }
 
-static void format_target_token(int index, char* out, size_t cap)
+static const char* ota_target_slug(OtaTarget t)
 {
-    if (!out || cap < 2) return;
-    out[0] = 0;
-    const char* name = AppSettings_OtaGameName(index);
-    if (index == (int)s_cfg.ota_game_sel) snprintf(out, cap, "[%s]", name);
-    else snprintf(out, cap, "%s", name);
+    switch (t) {
+    case kOtaTargetGo: return "go";
+    case kOtaTargetChess: return "chess";
+    case kOtaTargetGomoku: return "gomoku";
+    case kOtaTargetDice: return "dice";
+    case kOtaTargetStem: return "stem";
+    default: return "stem";
+    }
 }
 
-static void draw_game_selector_rows(void)
+static OtaTarget ota_target_from_url(const char* url)
 {
-    const int count = AppSettings_OtaGameCount();
-    char t0[20], t1[20], t2[20], t3[20];
-    format_target_token(0, t0, sizeof(t0));
-    format_target_token(1, t1, sizeof(t1));
-    format_target_token(2, t2, sizeof(t2));
-    format_target_token(3, t3, sizeof(t3));
+    if (!url) return kOtaTargetGo;
+    if (strstr(url, "/ota/go/")) return kOtaTargetGo;
+    if (strstr(url, "/ota/chess/")) return kOtaTargetChess;
+    if (strstr(url, "/ota/gomoku/")) return kOtaTargetGomoku;
+    if (strstr(url, "/ota/dice/")) return kOtaTargetDice;
+    if (strstr(url, "/ota/stem/")) return kOtaTargetStem;
+    return kOtaTargetGo;
+}
 
+static void draw_ota_target_rows(void)
+{
     char line0[64];
-    char line1[64];
-    snprintf(line0, sizeof(line0), "TARGET(LR) %s %s", t0, t1);
-    if (count > 2) snprintf(line1, sizeof(line1), "           %s %s", t2, (count > 3) ? t3 : "");
-    else snprintf(line1, sizeof(line1), "           ");
-
-    Ui_DrawBodyTextRowColor(6, line0, c_info());
-    Ui_DrawBodyTextRowColor(7, line1, c_info());
+    const char* target = ota_target_name(s_ota_target);
+    snprintf(line0, sizeof(line0), "TARGET: %s", target);
+    Ui_DrawBodyTextRowColor(6, line0, c_ok());
+    Ui_DrawBodyTextRowColor(7, "LR: switch target", c_info());
 }
 
-static bool build_selected_ota_url(char* out, size_t cap)
+static void append_cache_buster(char* url, size_t cap)
+{
+    if (!url || cap < 8) return;
+    if (!strstr(url, "/latest.bin")) return;
+    size_t len = strlen(url);
+    if (len + 20 >= cap) return;
+    char sep = (strchr(url, '?') != NULL) ? '&' : '?';
+    uint32_t stamp = now_ms() ^ (esp_random() & 0xFFFFU);
+    snprintf(url + len, cap - len, "%ccb=%u", sep, (unsigned)stamp);
+}
+
+static bool build_selected_ota_url(char* out, size_t cap, bool cache_bust)
 {
     if (!out || cap < 16) return false;
     out[0] = 0;
-    if (!CONFIG_COMM_WIFI_OTA_URL[0]) return false;
-    if (strncmp(CONFIG_COMM_WIFI_OTA_URL, "http://", 7) != 0 &&
-        strncmp(CONFIG_COMM_WIFI_OTA_URL, "https://", 8) != 0) {
-        return false;
-    }
-
-    const char* base = CONFIG_COMM_WIFI_OTA_URL;
-    const char* marker = strstr(base, "/latest.bin");
-    if (!marker || marker[11] != '\0') {
-        snprintf(out, cap, "%s", base);
-        return true;
-    }
-
-    // Only auto-expand when URL is in ".../ota/latest.bin" template form.
-    // If user config points to a fixed file such as ".../ota/go/latest.bin",
-    // keep it unchanged for direct remote-download testing.
-    if ((marker - base) >= 4 && strncmp(marker - 4, "/ota", 4) == 0) {
-        int prefix_len = (int)(marker - base) + 1; // include trailing '/'
-        if (prefix_len <= 0) return false;
-        snprintf(out, cap, "%.*s%s/latest.bin", prefix_len, base, ota_target_slug());
-        return true;
-    }
-
-    snprintf(out, cap, "%s", base);
+    snprintf(out, cap, "%s/%s/latest.bin", kOtaLatestBase, ota_target_slug(s_ota_target));
+    if (cache_bust) append_cache_buster(out, cap);
     return true;
 }
 
-static uint32_t ssid_hash(const char* s)
+static const char* app_version(void);
+
+static char app_variant_letter(void)
 {
-    uint32_t h = 5381U;
-    while (s && *s) {
-        h = ((h << 5) + h) ^ (uint8_t)(*s++);
-    }
-    return h;
+#if defined(APP_VARIANT_GO)
+    return 'G';
+#elif defined(APP_VARIANT_CHESS)
+    return 'A';
+#elif defined(APP_VARIANT_GOMOKU)
+    return 'F';
+#elif defined(APP_VARIANT_DICE)
+    return 'D';
+#else
+    return 'X';
+#endif
 }
 
-static bool load_saved_pass(const char* ssid, char* out_pass, size_t cap)
+static const char* app_version_display(void)
 {
-    if (!ssid || !ssid[0] || !out_pass || cap < 2) return false;
-    nvs_handle_t nvs = 0;
-    if (nvs_open("syswifi", NVS_READONLY, &nvs) != ESP_OK) return false;
-
-    char key[16];
-    snprintf(key, sizeof(key), "p%08x", (unsigned)ssid_hash(ssid));
-
-    size_t req = cap;
-    esp_err_t err = nvs_get_str(nvs, key, out_pass, &req);
-    nvs_close(nvs);
-    return err == ESP_OK && out_pass[0] != 0;
+    static char out[32];
+    const char* raw = app_version();
+    size_t n = 0;
+    if (raw) {
+        while (raw[n] && n < (sizeof(out) - 2U)) {
+            char c = raw[n];
+            if ((c >= '0' && c <= '9') || c == 'V' || c == 'v' || c == '.') {
+                out[n] = c;
+                n++;
+                continue;
+            }
+            break;
+        }
+    }
+    if (n == 0) {
+        snprintf(out, sizeof(out), "V0.00%c", app_variant_letter());
+        return out;
+    }
+    if (out[0] == 'v') out[0] = 'V';
+    out[n++] = app_variant_letter();
+    out[n] = 0;
+    return out;
 }
 
 static const char* app_version(void)
@@ -267,7 +294,7 @@ static void draw_status_dynamic_rows(void)
         else snprintf(line, sizeof(line), "Progress: preparing...");
         Ui_DrawBodyTextRowColor(4, line, c_text());
         draw_progress_bar(s_progress, true);
-    } else if (s_state == kStateConnecting && comm_wifi_is_connected()) {
+    } else if (s_state == kStateConnected) {
         Ui_DrawBodyTextRowColor(4, "Press OK to start OTA", c_info());
     } else {
         Ui_DrawBodyTextRowColor(4, "WiFi: waiting connection", c_text());
@@ -714,50 +741,15 @@ static bool auto_connect_with_saved(char* errbuf, size_t errcap)
         }
         return true;
     }
-
-    uint32_t t0 = now_ms();
-    while (!s_abort) {
-        CommWifiAp aps[3];
-        int ap_count = comm_wifi_scan_top3(aps, 3);
-        if (ap_count <= 0) {
-            int progress = (int)(((now_ms() - t0) * 100U) / (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS);
-            if (progress > 99) progress = 99;
-            set_state(kStateConnecting, "Searching AP...", progress);
-            if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
-            vTaskDelay(pdMS_TO_TICKS(200));
-            continue;
+    set_state(kStateConnecting, "Connecting saved WiFi...", 0);
+    if (comm_wifi_connect_saved_any(CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS, s_sel_ssid, (int)sizeof(s_sel_ssid))) {
+        if (!s_sel_ssid[0]) {
+            (void)comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid));
         }
-
-        for (int i = 0; i < ap_count && !s_abort; i++) {
-            char pass[33] = {0};
-            if (!load_saved_pass(aps[i].ssid, pass, sizeof(pass))) continue;
-
-            strncpy(s_sel_ssid, aps[i].ssid, sizeof(s_sel_ssid) - 1);
-            s_sel_ssid[sizeof(s_sel_ssid) - 1] = 0;
-
-            char st[64];
-            snprintf(st, sizeof(st), "Connecting %.30s...", s_sel_ssid);
-            set_state(kStateConnecting, st, 0);
-
-            if (!comm_wifi_connect_psk(s_sel_ssid, pass)) continue;
-
-            uint32_t t_connect = now_ms();
-            while (!s_abort && !comm_wifi_is_connected()) {
-                uint32_t elapsed = now_ms() - t_connect;
-                int progress = (int)((elapsed * 100U) / (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS);
-                if (progress > 99) progress = 99;
-                set_state(kStateConnecting, st, progress);
-                if (elapsed > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
-                vTaskDelay(pdMS_TO_TICKS(100));
-            }
-            if (comm_wifi_is_connected()) return true;
-        }
-
-        if ((now_ms() - t0) > (uint32_t)CONFIG_COMM_WIFI_CONNECT_TIMEOUT_MS) break;
-        vTaskDelay(pdMS_TO_TICKS(120));
+        return true;
     }
 
-    snprintf(errbuf, errcap, "WiFi connect timeout");
+    snprintf(errbuf, errcap, "No valid saved WiFi");
     return false;
 }
 
@@ -766,7 +758,7 @@ static void ota_prepare_task(void* arg)
     (void)arg;
     char err[64] = {0};
 
-    if (!build_selected_ota_url(s_ota_url, sizeof(s_ota_url))) {
+    if (!build_selected_ota_url(s_ota_url, sizeof(s_ota_url), false)) {
         set_state(kStateFail, "Set valid OTA URL", 0);
         ota_task_exit();
         return;
@@ -786,7 +778,7 @@ static void ota_prepare_task(void* arg)
         if (!comm_wifi_get_connected_ssid(s_sel_ssid, (int)sizeof(s_sel_ssid))) {
             s_sel_ssid[0] = 0;
         }
-        set_state(kStateConnecting, "WiFi ready. OK to start OTA", 100);
+        set_state(kStateConnected, "WiFi ready. OK to start OTA", 100);
     } else {
         set_state(kStateFail, "WiFi not connected", 0);
     }
@@ -798,7 +790,7 @@ static void ota_task_connected(void* arg)
     (void)arg;
     char err[64] = {0};
 
-    if (!build_selected_ota_url(s_ota_url, sizeof(s_ota_url))) {
+    if (!build_selected_ota_url(s_ota_url, sizeof(s_ota_url), true)) {
         set_state(kStateFail, "Set valid OTA URL", 0);
         ota_task_exit();
         return;
@@ -831,16 +823,16 @@ static void draw_ui(void)
     char line[64];
 
     if (s_need_full_redraw) {
-        Ui_DrawFrame(kSystemTitle, "LR:TARGET OK:GO BACK");
+        Ui_DrawFrame(kSystemTitle, "OK:START BACK");
         Ui_DrawBodyClear();
     }
 
     if (s_need_full_redraw) {
         // Shorter label leaves more room for git-describe suffix.
-        snprintf(line, sizeof(line), "VER: %.58s", app_version());
+        snprintf(line, sizeof(line), "VER: %.58s", app_version_display());
         Ui_DrawBodyTextRowColor(0, line, c_info());
         Ui_DrawBodyTextRowColor(1, kSystemCopyright, c_info());
-        draw_game_selector_rows();
+        draw_ota_target_rows();
     }
 
     if (s_state == kStatePortalProvision) {
@@ -863,7 +855,7 @@ static void draw_ui(void)
         draw_progress_bar(s_progress, true);
     }
 
-    if (s_state == kStateConnecting && comm_wifi_is_connected()) {
+    if (s_state == kStateConnected) {
         Ui_DrawBodyTextRowColor(5, "OK: start OTA", c_text());
     }
 
@@ -880,16 +872,17 @@ static void draw_setting_home(void)
     Ui_DrawBodyTextRowColor(0, "1 SYSTEM OTA", (s_home_sel == 0) ? c_ok() : c_text());
     Ui_DrawBodyTextRowColor(1, "2 VOLUME", (s_home_sel == 1) ? c_ok() : c_text());
     Ui_DrawBodyTextRowColor(2, "3 GO TIME", (s_home_sel == 2) ? c_ok() : c_text());
+    Ui_DrawBodyTextRowColor(3, "4 STEM OTA", (s_home_sel == 3) ? c_ok() : c_text());
 
     char line[64];
-    snprintf(line, sizeof(line), "OTA GAME: %s", AppSettings_OtaGameName(s_cfg.ota_game_sel));
+    snprintf(line, sizeof(line), "VER: %.56s", app_version_display());
     Ui_DrawBodyTextRowColor(4, line, c_info());
-    snprintf(line, sizeof(line), "VOL: %d%%", (int)s_cfg.volume_pct);
+    snprintf(line, sizeof(line), "OTA APP: %s", ota_target_name(s_ota_target));
     Ui_DrawBodyTextRowColor(5, line, c_info());
+    snprintf(line, sizeof(line), "VOL: %d%%", (int)s_cfg.volume_pct);
+    Ui_DrawBodyTextRowColor(6, line, c_info());
     snprintf(line, sizeof(line), "GO: %dmin + %ds x%d",
              (int)s_cfg.go_main_min, (int)s_cfg.go_byo_sec, (int)s_cfg.go_byo_count);
-    Ui_DrawBodyTextRowColor(6, line, c_info());
-    snprintf(line, sizeof(line), "VER: %.56s", app_version());
     Ui_DrawBodyTextRowColor(7, line, c_info());
 }
 
@@ -926,6 +919,7 @@ static void show_requirements(ExperimentContext* ctx)
     Ui_Println("1) SYSTEM OTA");
     Ui_Println("2) VOLUME SETTING");
     Ui_Println("3) GO TIME SETTING");
+    Ui_Println("4) STEM OTA");
     Ui_Println("GO: main + byo + count");
 }
 
@@ -947,7 +941,8 @@ static void start(ExperimentContext* ctx)
     s_qr_size = 0;
     s_qr_payload[0] = 0;
     s_ota_url[0] = 0;
-    (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url));
+    s_ota_target = ota_target_from_url(CONFIG_COMM_WIFI_OTA_URL);
+    (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url), false);
     strncpy(s_status, "Searching WiFi...", sizeof(s_status) - 1);
     s_status[sizeof(s_status) - 1] = 0;
     s_need_full_redraw = true;
@@ -971,20 +966,21 @@ static void on_key(ExperimentContext* ctx, InputKey key)
     if (s_page == kSettingPageHome) {
         if (key == kInputUp) {
             s_home_sel--;
-            if (s_home_sel < 0) s_home_sel = 2;
+            if (s_home_sel < 0) s_home_sel = 3;
             draw_setting_home();
             return;
         }
         if (key == kInputDown) {
             s_home_sel++;
-            if (s_home_sel > 2) s_home_sel = 0;
+            if (s_home_sel > 3) s_home_sel = 0;
             draw_setting_home();
             return;
         }
         if (key == kInputEnter) {
-            if (s_home_sel == 0) {
+            if (s_home_sel == 0 || s_home_sel == 3) {
+                if (s_home_sel == 3) s_ota_target = kOtaTargetStem;
                 s_page = kSettingPageOta;
-                (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url));
+                (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url), false);
                 set_state(kStateConnecting, "Searching WiFi...", 0);
                 s_abort = false;
                 if (!s_ota_task) {
@@ -1092,21 +1088,22 @@ static void on_key(ExperimentContext* ctx, InputKey key)
         }
         return;
     }
+    if (s_ota_task) return;
+
     if (key == kInputLeft || key == kInputRight) {
-        int n = AppSettings_OtaGameCount();
-        int v = (int)s_cfg.ota_game_sel + ((key == kInputRight) ? 1 : -1);
-        if (v < 0) v = n - 1;
-        if (v >= n) v = 0;
-        s_cfg.ota_game_sel = (uint8_t)v;
-        (void)AppSettings_Save(&s_cfg);
-        (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url));
+        if (key == kInputLeft) {
+            s_ota_target = (s_ota_target == 0) ? (kOtaTargetCount - 1) : (s_ota_target - 1);
+        } else {
+            s_ota_target = (s_ota_target + 1) % kOtaTargetCount;
+        }
+        (void)build_selected_ota_url(s_ota_url, sizeof(s_ota_url), false);
+        snprintf(s_status, sizeof(s_status), "Target switched");
         s_need_full_redraw = true;
         s_ui_dirty = true;
         return;
     }
-    if (s_ota_task) return;
 
-    if (s_state == kStateConnecting && comm_wifi_is_connected() && key == kInputEnter) {
+    if (s_state == kStateConnected && comm_wifi_is_connected() && key == kInputEnter) {
         s_abort = false;
         if (xTaskCreate(ota_task_connected, "ota_task_conn", OTA_TASK_STACK_BYTES, NULL, 4, &s_ota_task) != pdPASS) {
             set_state(kStateFail, "OTA task create failed", 0);
