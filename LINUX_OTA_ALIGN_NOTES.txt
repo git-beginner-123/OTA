@@ -1,0 +1,53 @@
+[目标]
+1) STEM 与 GAME OTA 升级目标统一：GO / CHESS / GOMOKU / DICE / STEM
+2) 最终 BIN 统一放到: https://github.com/git-beginner-123/OTA
+3) STEM 仓库只保留过渡版本（用于跳转到 OTA 仓库）
+
+[本次已改文件]
+A. STEM 仓库 (stem_framework_idf61_lcd)
+- main/experiments/exp_wifi_ota.c
+  - OTA 目标顺序改为: GO, CHESS, GOMOKU, DICE, STEM
+  - ota_target_name/slug/from_url 顺序与目标同步
+  - 标题从 SYSTEM 改为 SETTING
+  - 引导文案改成 GAME 风格
+- release_ota.sh
+  - local public_sync=0 -> local public_sync=1
+  - 作用：默认同步到公共 OTA 仓库（OTA）
+
+B. GAME 仓库 (../game)
+- main/experiments/exp_wifi_ota.c
+  - OTA 目标新增 STEM
+  - 枚举变为: GO, CHESS, GOMOKU, DICE, STEM
+  - ota_target_name/slug/from_url 新增 stem
+- main/core/app_settings.c
+  - kOtaGames 新增 STEM，顺序同步
+- main/core/app_settings.h
+  - ota_game_sel 注释 0..3 -> 0..4
+- ota/targets.txt
+  - 统一为:
+    1 GO go
+    2 CHESS chess
+    3 GOMOKU gomoku
+    4 DICE dice
+    9 STEM stem
+
+[Linux 下建议核对命令]
+# 在 STEM 仓库
+rg -n "kOtaTargetGo|kOtaTargetChess|kOtaTargetGomoku|kOtaTargetDice|kOtaTargetStem|kSystemTitle|public_sync=" main/experiments/exp_wifi_ota.c release_ota.sh
+
+# 在 GAME 仓库
+rg -n "kOtaTargetGo|kOtaTargetChess|kOtaTargetGomoku|kOtaTargetDice|kOtaTargetStem|kOtaGames|ota_game_sel" main/experiments/exp_wifi_ota.c main/core/app_settings.c main/core/app_settings.h
+cat ota/targets.txt
+
+[Linux 下如需回退某处]
+# 回退单文件示例
+# git checkout -- main/experiments/exp_wifi_ota.c
+
+[发布策略]
+1) STEM 仅发过渡 BIN（让外部 STEM 设备切换到 OTA 通道）
+2) 之后所有目标 BIN 统一发到 OTA 仓库对应路径:
+   ota/go/latest.bin
+   ota/chess/latest.bin
+   ota/gomoku/latest.bin
+   ota/dice/latest.bin
+   ota/stem/latest.bin

@@ -213,7 +213,7 @@ main() {
   local repo=""
   local branch=""
   local bin_path=""
-  local public_sync=0
+  local public_sync=1
   local public_repo_url="${PUBLIC_OTA_REPO_URL:-git@github.com:git-beginner-123/OTA.git}"
   local public_repo_dir="${PUBLIC_OTA_REPO_DIR:-/tmp/stem_ota_public_repo}"
   local public_subdir="${PUBLIC_OTA_SUBDIR:-ota}"
