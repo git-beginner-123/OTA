@@ -15,19 +15,25 @@ Options:
   --repo OWNER/REPO        GitHub repo for release (default: detected from origin)
   --branch BRANCH          Git branch to push (default: current branch)
   --bin PATH               Firmware bin path (default: auto-detect)
+  --public-ota-repo URL    Public OTA repo URL (default: git@github.com:git-beginner-123/OTA.git)
+  --public-ota-dir DIR     Local clone dir for public OTA repo (default: /tmp/stem_ota_public_repo)
+  --public-ota-subdir DIR  OTA subdir in public repo (default: ota)
+  --public-ota-target TAG  Target slug in public repo (default: stem)
+  --no-public-sync         Do not sync to public OTA repo
   --no-build               Skip idf.py build
   --notes TEXT             Release notes (default: "OTA release <version>")
   --git-only               Only use git push/tag; skip GitHub Release upload
   -h, --help               Show this help
 
 What it does:
-  1) Optional build (idf.py build)
+  1) Optional build (idf.py -DPROJECT_VER=<version> build)
   2) Copy firmware to ota/app-<version>.bin
   3) Update ota/latest.bin for stable OTA URL
   4) Generate ota/app-<version>.sha256 and ota/latest.sha256
   5) Commit + push code and ota files
   6) Create git tag and push
   7) Create/update GitHub release and upload bin + sha256 (unless --git-only)
+  8) Sync to public OTA repo path ota/<target>/latest.bin (unless --no-public-sync)
 EOF
 }
 
@@ -38,6 +44,22 @@ die() {
 
 info() {
   echo "[INFO] $*"
+}
+
+extract_project_version() {
+  local desc="build/project_description.json"
+  [ -f "$desc" ] || return 1
+  sed -n 's/^[[:space:]]*"project_version":[[:space:]]*"\(.*\)",[[:space:]]*$/\1/p' "$desc" | head -n 1
+}
+
+verify_project_version_matches() {
+  local expected="$1"
+  local actual
+  actual="$(extract_project_version || true)"
+  [ -n "$actual" ] || die "Cannot read project_version from build/project_description.json. Run build first."
+  if [ "$actual" != "$expected" ]; then
+    die "Version mismatch: build project_version='$actual' but expected '$expected'."
+  fi
 }
 
 ensure_idf_env() {
@@ -90,6 +112,91 @@ detect_bin_path() {
   return 1
 }
 
+sync_to_public_ota_repo() {
+  local version="$1"
+  local source_repo="$2"
+  local source_branch="$3"
+  local repo_url="$4"
+  local repo_dir="$5"
+  local subdir="$6"
+  local target="$7"
+  local ota_bin="$8"
+  local ota_sha="$9"
+  local ota_latest="${10}"
+  local ota_latest_sha="${11}"
+
+  command -v git >/dev/null 2>&1 || {
+    info "git not found, skip public OTA sync"
+    return 0
+  }
+
+  if [[ ! -d "${repo_dir}/.git" ]]; then
+    rm -rf "${repo_dir}"
+    git clone "${repo_url}" "${repo_dir}"
+  else
+    git -C "${repo_dir}" remote set-url origin "${repo_url}"
+  fi
+
+  local branch
+  branch="$(git -C "${repo_dir}" branch --show-current 2>/dev/null || true)"
+  if [[ -z "${branch}" ]]; then
+    branch="$(git -C "${repo_dir}" symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')"
+  fi
+  if [[ -z "${branch}" ]]; then
+    branch="main"
+  fi
+
+  git -C "${repo_dir}" fetch origin --prune || true
+  if git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/${branch}"; then
+    git -C "${repo_dir}" checkout "${branch}"
+    git -C "${repo_dir}" merge --ff-only "origin/${branch}"
+  elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/main"; then
+    branch="main"
+    git -C "${repo_dir}" checkout "${branch}"
+    git -C "${repo_dir}" merge --ff-only "origin/${branch}"
+  elif git -C "${repo_dir}" show-ref --verify --quiet "refs/remotes/origin/master"; then
+    branch="master"
+    git -C "${repo_dir}" checkout "${branch}"
+    git -C "${repo_dir}" merge --ff-only "origin/${branch}"
+  else
+    git -C "${repo_dir}" checkout -B "${branch}"
+  fi
+
+  local dst_dir="${repo_dir}/${subdir}/${target}"
+  mkdir -p "${dst_dir}"
+  cp -f "${ota_latest}" "${dst_dir}/latest.bin"
+  cp -f "${ota_latest_sha}" "${dst_dir}/latest.sha256"
+  cp -f "${ota_bin}" "${dst_dir}/app-${version}.bin"
+  cp -f "${ota_sha}" "${dst_dir}/app-${version}.sha256"
+  printf '%s\n' "${version}" > "${dst_dir}/latest.version"
+  cat > "${dst_dir}/latest.meta" <<EOF
+project=stem_framework_idf61_lcd
+target=${target}
+version=${version}
+source_repo=${source_repo}
+source_branch=${source_branch}
+EOF
+
+  mkdir -p "${repo_dir}/${subdir}"
+  local targets_file="${repo_dir}/${subdir}/targets.txt"
+  if [[ ! -f "${targets_file}" ]]; then
+    : > "${targets_file}"
+  fi
+  if ! grep -Eq '(^|[[:space:]])STEM[[:space:]]+stem$' "${targets_file}"; then
+    printf '%s\n' "9 STEM stem" >> "${targets_file}"
+  fi
+
+  git -C "${repo_dir}" add "${subdir}/${target}" "${subdir}/targets.txt"
+  if git -C "${repo_dir}" diff --cached --quiet; then
+    info "Public OTA repo unchanged (${subdir}/${target})"
+    return 0
+  fi
+
+  git -C "${repo_dir}" commit -m "ota: update ${target} (${version})"
+  git -C "${repo_dir}" push origin "${branch}"
+  info "Public OTA synced: ${repo_url} -> ${subdir}/${target}"
+}
+
 main() {
   [ $# -ge 1 ] || {
     usage
@@ -106,6 +213,11 @@ main() {
   local repo=""
   local branch=""
   local bin_path=""
+  local public_sync=0
+  local public_repo_url="${PUBLIC_OTA_REPO_URL:-git@github.com:git-beginner-123/OTA.git}"
+  local public_repo_dir="${PUBLIC_OTA_REPO_DIR:-/tmp/stem_ota_public_repo}"
+  local public_subdir="${PUBLIC_OTA_SUBDIR:-ota}"
+  local public_target="${PUBLIC_OTA_TARGET:-stem}"
   local do_build=1
   local notes=""
   local git_only=0
@@ -123,6 +235,26 @@ main() {
       --bin)
         bin_path="$2"
         shift 2
+        ;;
+      --public-ota-repo)
+        public_repo_url="$2"
+        shift 2
+        ;;
+      --public-ota-dir)
+        public_repo_dir="$2"
+        shift 2
+        ;;
+      --public-ota-subdir)
+        public_subdir="$2"
+        shift 2
+        ;;
+      --public-ota-target)
+        public_target="$2"
+        shift 2
+        ;;
+      --no-public-sync)
+        public_sync=0
+        shift
         ;;
       --no-build)
         do_build=0
@@ -164,10 +296,12 @@ main() {
 
   if [ "$do_build" -eq 1 ]; then
     ensure_idf_env
-    info "Building firmware with idf.py build"
-    idf.py build
+    info "Building firmware with forced project version: ${version}"
+    idf.py -DPROJECT_VER="${version}" build
+    verify_project_version_matches "${version}"
   else
     info "Skipping build (--no-build)"
+    verify_project_version_matches "${version}"
   fi
 
   if [ -z "$bin_path" ]; then
@@ -189,6 +323,12 @@ main() {
   cp -f "$bin_path" "$ota_latest"
   sha256sum "$ota_bin" >"$ota_sha"
   sha256sum "$ota_latest" >"$ota_latest_sha"
+  local src_hash ota_hash latest_hash
+  src_hash="$(sha256sum "$bin_path" | awk '{print $1}')"
+  ota_hash="$(sha256sum "$ota_bin" | awk '{print $1}')"
+  latest_hash="$(sha256sum "$ota_latest" | awk '{print $1}')"
+  [ "$src_hash" = "$ota_hash" ] || die "Hash mismatch: source bin and ota/app-${version}.bin differ."
+  [ "$src_hash" = "$latest_hash" ] || die "Hash mismatch: source bin and ota/latest.bin differ."
 
   info "Staging git changes (excluding build outputs)"
   git add . ':!build/' ':!idf_snapshots/'
@@ -218,10 +358,22 @@ main() {
     git push origin "${version}"
   fi
 
+  if [ "$public_sync" -eq 1 ]; then
+    info "Syncing to public OTA repo (${public_target})"
+    sync_to_public_ota_repo \
+      "${version}" "${repo}" "${branch}" \
+      "${public_repo_url}" "${public_repo_dir}" "${public_subdir}" "${public_target}" \
+      "${ota_bin}" "${ota_sha}" "${ota_latest}" "${ota_latest_sha}"
+  else
+    info "Skip public OTA sync (--no-public-sync)"
+  fi
+
   if [ "$git_only" -eq 1 ]; then
     info "Skipping GitHub Release upload (--git-only)"
     info "Stable OTA URL (recommended):"
     echo "https://raw.githubusercontent.com/${repo}/${branch}/ota/latest.bin"
+    info "Public OTA URL (shared repo):"
+    echo "https://raw.githubusercontent.com/git-beginner-123/OTA/main/${public_subdir}/${public_target}/latest.bin"
     info "Version-pinned OTA URL:"
     echo "https://raw.githubusercontent.com/${repo}/${version}/ota/$(basename "$ota_bin")"
     exit 0
