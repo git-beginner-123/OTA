@@ -1,0 +1,5 @@
+project=stem_framework_idf61_lcd
+target=stem
+version=v1.2.5
+source_repo=git-beginner-123/mystem
+source_branch=master
