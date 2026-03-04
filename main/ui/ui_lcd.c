@@ -51,6 +51,11 @@ static int s_mainmenu_last_index = -1;
 static int s_mainmenu_last_start = -1;
 static int s_mainmenu_last_count = -1;
 static int s_mainmenu_last_rows = -1;
+static bool s_mic_cache_valid = false;
+static int s_mic_last_count = -1;
+static int s_mic_last_levels[16];
+static int s_mic_last_vol = -1;
+static int s_mic_last_freq = -1;
 
 static void Ui_MainMenuInvalidate(void)
 {
@@ -59,6 +64,11 @@ static void Ui_MainMenuInvalidate(void)
     s_mainmenu_last_start = -1;
     s_mainmenu_last_count = -1;
     s_mainmenu_last_rows = -1;
+    s_mic_cache_valid = false;
+    s_mic_last_count = -1;
+    s_mic_last_vol = -1;
+    s_mic_last_freq = -1;
+    for (int i = 0; i < 16; i++) s_mic_last_levels[i] = -1;
 }
 
 static void Ui_DrawListRow(int y, const char* text, bool selected);
@@ -430,7 +440,7 @@ void Ui_Init(void)
     ESP_LOGI(kUiTag, "Lamp color order = %d", (int)LAMP_COLOR_ORDER);
     Ui_LineBufInit(UI_LINE_H);
     St7789_Fill(UI_COLOR_BG);
-    St7789_Flush();
+    // Avoid an extra full-screen flush before the first menu draw.
 }
 
 void Ui_Clear(void)
@@ -1072,10 +1082,6 @@ void Ui_DrawGpioBody(int selected, bool red_on, bool green_on, bool yellow_on)
 void Ui_DrawPwmBody(int selected, int red_pct, int green_pct, int yellow_pct, int freq_hz)
 {
     int w = St7789_Width();
-    int body_y = UI_HEADER_H;
-    int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
-
-    St7789_FillRect(0, body_y, w, body_h, UI_COLOR_BG);
 
     int row_h = UI_LINE_H + 8;
     int top = UI_HEADER_H + 10;
@@ -1156,8 +1162,6 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
     int body_h = St7789_Height() - UI_HEADER_H - UI_FOOTER_H;
 
     int text_y = body_y + UI_PAD_Y;
-    // Clear only the text line area
-    St7789_FillRect(0, text_y, w, UI_LINE_H, UI_COLOR_BG);
 
     Ui_LineBufInit(UI_LINE_H);
     uint16_t* buf = Ui_LineBufNext();
@@ -1165,11 +1169,17 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
 
     if (vol_pct < 0) vol_pct = 0;
     if (vol_pct > 100) vol_pct = 100;
-
-    char line[64];
-    snprintf(line, sizeof(line), "FREQ %4d Hz   VOL %3d%%", freq_hz, vol_pct);
-    draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
-    St7789_BlitRect(0, text_y, w, UI_LINE_H, buf);
+    int show_vol = vol_pct;
+    int show_freq = freq_hz;
+    if (s_mic_cache_valid) {
+        int dv = show_vol - s_mic_last_vol;
+        if (dv < 0) dv = -dv;
+        int df = show_freq - s_mic_last_freq;
+        if (df < 0) df = -df;
+        // Hysteresis: ignore tiny text changes to reduce flicker.
+        if (dv < 2) show_vol = s_mic_last_vol;
+        if (df < 250) show_freq = s_mic_last_freq;
+    }
 
     int bar_h = 8;
     int bar_y = body_y + body_h - UI_PAD_Y - bar_h;
@@ -1181,29 +1191,61 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
     }
 
     int spec_h = spec_y1 - spec_y0;
+    int spec_h_draw = (spec_h * 78) / 100;
+    if (spec_h_draw < 8) spec_h_draw = spec_h;
     int count = band_count;
     if (count < 1) count = 1;
     if (count > 16) count = 16;
 
-    int gap = 2;
+    int gap = 4;
     int total_gap = (count - 1) * gap;
-    int bar_w = (w - (UI_PAD_X * 2) - total_gap) / count;
-    if (bar_w < 3) bar_w = 3;
+    int slot_w = (w - (UI_PAD_X * 2) - total_gap) / count;
+    if (slot_w < 4) slot_w = 4;
+    int bar_w = slot_w - 2; // narrower bars
+    if (bar_w < 2) bar_w = 2;
     int start_x = UI_PAD_X;
+    uint16_t spec_bg = Ui_ColorRGB(18, 24, 34);
+    uint16_t spec_bar_bg = Ui_ColorRGB(40, 52, 68);
+    uint16_t spec_fill = Ui_ColorRGB(86, 190, 140);
+
+    bool need_full_spec_clear = (!s_mic_cache_valid || s_mic_last_count != count);
+    if (need_full_spec_clear) {
+        St7789_FillRect(UI_PAD_X, spec_y0, w - (UI_PAD_X * 2), spec_h, spec_bg);
+        for (int i = 0; i < 16; i++) s_mic_last_levels[i] = -1;
+    }
+
+    if (!s_mic_cache_valid || s_mic_last_freq != show_freq || s_mic_last_vol != show_vol) {
+        St7789_FillRect(0, text_y, w, UI_LINE_H, UI_COLOR_BG);
+        LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
+        char line[64];
+        snprintf(line, sizeof(line), "FREQ %4d Hz   VOL %3d%%", show_freq, show_vol);
+        draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, line, UI_COLOR_TEXT);
+        St7789_BlitRect(0, text_y, w, UI_LINE_H, buf);
+    }
 
     for (int i = 0; i < count; i++) {
         int level = 0;
         if (bands && i < band_count) level = bands[i];
         if (level < 0) level = 0;
         if (level > 100) level = 100;
+        if (s_mic_cache_valid && s_mic_last_levels[i] >= 0) {
+            int dd = level - s_mic_last_levels[i];
+            if (dd < 0) dd = -dd;
+            // Ignore tiny per-band jitter.
+            if (dd < 2) level = s_mic_last_levels[i];
+        }
 
-        int x = start_x + i * (bar_w + gap);
-        int fill_h = (spec_h * level) / 100;
-        int y = spec_y1 - fill_h;
-
-        St7789_FillRect(x, spec_y0, bar_w, spec_h, UI_COLOR_MUTED);
-        if (fill_h > 0) {
-            St7789_FillRect(x, y, bar_w, fill_h, UI_COLOR_ACCENT);
+        if (level != s_mic_last_levels[i] || need_full_spec_clear) {
+            int x_slot = start_x + i * (slot_w + gap);
+            int x = x_slot + (slot_w - bar_w) / 2;
+            int fill_h = (spec_h_draw * level) / 100;
+            // Redraw this changed column completely to avoid residual "peak shadow".
+            St7789_FillRect(x, spec_y0, bar_w, spec_h, spec_bar_bg);
+            if (fill_h > 0) {
+                int y = spec_y1 - fill_h;
+                St7789_FillRect(x, y, bar_w, fill_h, spec_fill);
+            }
+            s_mic_last_levels[i] = level;
         }
     }
 
@@ -1211,18 +1253,24 @@ void Ui_DrawMicBody(const int* bands, int band_count, int freq_hz, int vol_pct)
     if (vol_bar_w < 20) vol_bar_w = 20;
     int vol_bar_x = UI_PAD_X + 40;
 
-    // Redraw volume label and bar without clearing the whole area
-    Ui_LineBufInit(UI_LINE_H);
-    buf = Ui_LineBufNext();
-    LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
-    draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "VOL", UI_COLOR_MUTED);
-    St7789_BlitRect(0, bar_y - 6, w, UI_LINE_H, buf);
+    if (!s_mic_cache_valid || s_mic_last_vol != show_vol || s_mic_last_freq != show_freq) {
+        Ui_LineBufInit(UI_LINE_H);
+        buf = Ui_LineBufNext();
+        LineBufFill(buf, w, UI_LINE_H, UI_COLOR_BG);
+        draw_text8x16_to_buf(buf, w, UI_LINE_H, UI_PAD_X, 2, "VOL", UI_COLOR_MUTED);
+        St7789_BlitRect(0, bar_y - 6, w, UI_LINE_H, buf);
 
-    St7789_FillRect(vol_bar_x, bar_y, vol_bar_w, bar_h, UI_COLOR_MUTED);
-    int fill_w = (vol_bar_w * vol_pct) / 100;
-    if (fill_w > 0) {
-        St7789_FillRect(vol_bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
+        St7789_FillRect(vol_bar_x, bar_y, vol_bar_w, bar_h, UI_COLOR_MUTED);
+        int fill_w = (vol_bar_w * show_vol) / 100;
+        if (fill_w > 0) {
+            St7789_FillRect(vol_bar_x, bar_y, fill_w, bar_h, UI_COLOR_ACCENT);
+        }
     }
+
+    s_mic_cache_valid = true;
+    s_mic_last_count = count;
+    s_mic_last_vol = show_vol;
+    s_mic_last_freq = show_freq;
 }
 
 void Ui_DrawSpeakerBody(bool playing, int vol_pct, int progress_pct, uint32_t sample_rate_hz)

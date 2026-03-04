@@ -105,14 +105,9 @@ static void draw_full(void)
     Ui_LcdUnlock();
 }
 
-static void draw_body(void)
+static void draw_body_only(void)
 {
     Ui_LcdLock();
-    if (s_edit_mode) {
-        Ui_DrawFrame("PWM", "LT:-  RT:+  OK:DONE");
-    } else {
-        Ui_DrawFrame("PWM", "UP/DN:SEL  OK:EDIT");
-    }
     Ui_DrawPwmBody(s_sel, s_duty_pct[0], s_duty_pct[1], s_duty_pct[2], s_freq_hz);
     Ui_LcdUnlock();
 }
@@ -172,6 +167,7 @@ static void on_key(ExperimentContext* ctx, InputKey key)
     (void)ctx;
     bool changed = false;
     bool param_changed = false;
+    bool mode_changed = false;
 
     if (key == kInputDown) {
         s_sel = (s_sel + 1) % 4;
@@ -182,6 +178,7 @@ static void on_key(ExperimentContext* ctx, InputKey key)
     } else if (key == kInputEnter) {
         s_edit_mode = !s_edit_mode;
         changed = true;
+        mode_changed = true;
     } else if (s_edit_mode && (key == kInputLeft || key == kInputRight)) {
         bool increase = (key == kInputRight);
         if (s_sel < 3) {
@@ -208,8 +205,10 @@ static void on_key(ExperimentContext* ctx, InputKey key)
         if (!s_ui_inited) {
             draw_full();
             s_ui_inited = true;
+        } else if (mode_changed) {
+            draw_full();
         } else {
-            draw_body();
+            draw_body_only();
         }
     }
 }

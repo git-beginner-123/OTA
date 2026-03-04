@@ -3,13 +3,13 @@
 extern const Experiment g_exp_gpio;
 extern const Experiment g_exp_pwm;
 extern const Experiment g_exp_adc;
-extern const Experiment g_exp_uart;
+extern const Experiment g_exp_history;
 extern const Experiment g_exp_tof;
 extern const Experiment g_exp_mic;
 extern const Experiment g_exp_speaker;
 extern const Experiment g_exp_ble;
 extern const Experiment g_exp_wifi_ap;
-extern const Experiment g_exp_wifi_sta;
+extern const Experiment g_exp_economy;
 extern const Experiment g_exp_semaforo;
 extern const Experiment g_exp_maze;
 extern const Experiment g_exp_seesaw;
@@ -30,7 +30,7 @@ static const Experiment* kList[] = {
     &g_exp_semaforo,
     &g_exp_adc,
     &g_exp_maze,
-    &g_exp_uart,
+    &g_exp_history,
     &g_exp_seesaw,
     &g_exp_tof,
     &g_exp_math24,
@@ -47,7 +47,7 @@ static const Experiment* kList[] = {
     &g_exp_memory,
     &g_exp_pwm,
     &g_exp_wifi_ap,
-    &g_exp_wifi_sta,
+    &g_exp_economy,
     &g_exp_wifi_ota,
     &g_exp_sudoku,
 };

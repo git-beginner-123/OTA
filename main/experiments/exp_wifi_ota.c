@@ -190,7 +190,7 @@ static void draw_status_dynamic_rows(void)
     char line[64];
     char status_line[64];
 
-    if (s_state == kStateConnecting || s_state == kStateDownloading) {
+    if (s_state == kStateDownloading) {
         const char spinner[] = "|/-\\";
         int ph = s_anim_phase & 3;
         snprintf(status_line, sizeof(status_line), "Status: %c %.52s", spinner[ph], s_status);
@@ -208,9 +208,8 @@ static void draw_status_dynamic_rows(void)
         else snprintf(line, sizeof(line), "Progress: preparing...");
         Ui_DrawBodyTextRowColor(4, line, c_text());
         draw_progress_bar(s_progress, true);
-    } else if (s_state == kStateConnecting) {
-        Ui_DrawBodyTextRowColor(4, "Connecting / preparing OTA...", c_text());
-        draw_progress_bar(0, true);
+    } else if (s_state == kStateConnecting && comm_wifi_is_connected()) {
+        Ui_DrawBodyTextRowColor(4, "Press OK to start OTA", c_info());
     } else {
         Ui_DrawBodyTextRowColor(4, "URL: COMM_WIFI_OTA_URL", c_text());
     }
@@ -900,7 +899,7 @@ static void tick(ExperimentContext* ctx)
 {
     (void)ctx;
     uint32_t t = now_ms();
-    if (s_state == kStateConnecting || s_state == kStateDownloading) {
+    if (s_state == kStateDownloading) {
         if ((t - s_last_anim_ms) >= 120U) {
             s_last_anim_ms = t;
             s_anim_phase++;

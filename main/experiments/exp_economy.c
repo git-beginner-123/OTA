@@ -147,7 +147,7 @@ static void draw_qr_on_lcd(void)
 
 static void render_portal_screen(void)
 {
-    Ui_DrawFrame("WIFI STA", "BACK=RET");
+    Ui_DrawFrame("ECONOMY", "BACK=RET");
     Ui_DrawBodyClear();
     char line0[48];
     snprintf(line0, sizeof(line0), "WEB PROVISION (%d SAVED)", comm_wifi_saved_credential_count());
@@ -161,7 +161,7 @@ static void render_portal_screen(void)
 
 static void render_connecting_screen(void)
 {
-    Ui_DrawFrame("WIFI STA", "BACK=RET");
+    Ui_DrawFrame("ECONOMY", "BACK=RET");
     Ui_DrawBodyClear();
     Ui_DrawBodyTextRowColor(0, "CONNECTING...", color_value());
     Ui_DrawBodyTextRowColor(1, s_sel_ssid[0] ? s_sel_ssid : "(none)", color_value());
@@ -173,7 +173,7 @@ static void render_connected_screen_once(void)
 {
     if (s_connected_screen) return;
     s_connected_screen = true;
-    Ui_DrawFrame("WIFI STA", "BACK=RET");
+    Ui_DrawFrame("ECONOMY", "BACK=RET");
     Ui_DrawBodyClear();
     if (s_sel_ssid[0]) {
         char line[48];
@@ -189,7 +189,7 @@ static void render_connect_fail_screen_once(void)
 {
     if (s_fail_drawn) return;
     s_fail_drawn = true;
-    Ui_DrawFrame("WIFI STA", "OK:RETRY  BACK:RET");
+    Ui_DrawFrame("ECONOMY", "OK:RETRY  BACK:RET");
     Ui_DrawBodyClear();
     Ui_DrawBodyTextRowColor(0, "PROVISION FAILED", color_err());
     Ui_DrawBodyTextRowColor(1, s_status_line, color_value());
@@ -377,7 +377,7 @@ static void enter_portal_mode(void)
 static void show_requirements(ExperimentContext* ctx)
 {
     (void)ctx;
-    Ui_DrawFrame("WIFI STA", "OK:START  BACK");
+    Ui_DrawFrame("ECONOMY", "OK:START  BACK");
     Ui_Println("Fetch market quotes.");
     Ui_Println("If offline, use web provisioning.");
     Ui_Println("Join AP: STEM_SETUP");
@@ -555,9 +555,9 @@ static void tick(ExperimentContext* ctx)
     }
 }
 
-const Experiment g_exp_wifi_sta = {
+const Experiment g_exp_economy = {
     .id = 10,
-    .title = "WIFI STA",
+    .title = "ECONOMY",
     .on_enter = 0,
     .on_exit = 0,
     .show_requirements = show_requirements,

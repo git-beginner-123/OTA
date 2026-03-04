@@ -23,9 +23,11 @@
 
 #define MIC_SAMPLES       256
 #define MIC_BANDS         10
-#define MIC_UI_PERIOD_MS  2000
-#define MIC_UI_SMOOTH_SHIFT 2
-#define MIC_UI_VOL_SMOOTH_SHIFT 3
+#define MIC_UI_PERIOD_MS  220
+#define MIC_UI_VOL_SMOOTH_SHIFT 2
+#define MIC_UI_BAND_ATTACK_SHIFT 3
+#define MIC_UI_BAND_DECAY_SHIFT 4
+#define MIC_UI_BAND_NOISE_GATE 5
 
 static const char* TAG = "EXP_MIC";
 
@@ -37,6 +39,7 @@ static int s_band_levels[MIC_BANDS];
 static uint32_t s_last_ui_ms = 0;
 static int s_vol_smooth = 0;
 static int s_band_smooth[MIC_BANDS];
+static uint32_t s_last_log_ms = 0;
 
 static void mic_start_driver(void)
 {
@@ -98,13 +101,26 @@ static int calc_volume_pct(const int16_t* s, int n)
     if (!s || n <= 0) return 0;
 
     int64_t sum_sq = 0;
+    int peak = 0;
     for (int i = 0; i < n; i++) {
         int32_t v = s[i];
         sum_sq += (int64_t)v * v;
+        int av = (v >= 0) ? v : -v;
+        if (av > peak) peak = av;
     }
     float rms = sqrtf((float)sum_sq / (float)n);
-    float db = 20.0f * log10f((rms / 32768.0f) + 1e-6f);
-    float pct = (db + 50.0f) * (100.0f / 50.0f);
+    float rms_db = 20.0f * log10f((rms / 32768.0f) + 1e-7f);
+    float peak_db = 20.0f * log10f(((float)peak / 32768.0f) + 1e-7f);
+    // Blend RMS + peak to improve responsiveness on short loud sounds.
+    float db = 0.75f * rms_db + 0.25f * peak_db;
+
+    const float noise_floor_db = -62.0f;
+    const float loud_db = -10.0f;
+    float norm = (db - noise_floor_db) / (loud_db - noise_floor_db);
+    if (norm < 0.0f) norm = 0.0f;
+    if (norm > 1.0f) norm = 1.0f;
+    // Expand low/mid dynamics so human voice changes are easier to see.
+    float pct = 100.0f * powf(norm, 0.62f);
     if (pct < 0) pct = 0;
     if (pct > 100) pct = 100;
     return (int)(pct + 0.5f);
@@ -142,10 +158,11 @@ static void calc_octave_bands(const int16_t* s, int n, int sample_rate, int* out
     for (int b = 0; b < out_count; b++) {
         float mag = (float)out_levels[b];
         float db = 10.0f * log10f(mag + 1.0f);
-        float pct = (db - 20.0f) * (100.0f / 40.0f);
+        float pct = (db - 30.0f) * (100.0f / 50.0f);
         if (pct < 0) pct = 0;
         if (pct > 100) pct = 100;
-        out_levels[b] = (int)(pct + 0.5f);
+        // Keep bars pleasant and avoid over-tall spikes.
+        out_levels[b] = (int)((pct * 72.0f / 100.0f) + 0.5f);
     }
 }
 
@@ -194,7 +211,9 @@ static void start(ExperimentContext* ctx)
     s_running = true;
 
     Ui_DrawFrame("MIC", "BACK");
+    Ui_BeginBatch();
     Ui_DrawMicBody(NULL, 0, 0, 0);
+    Ui_EndBatch();
     s_last_ui_ms = 0;
     s_vol_smooth = 0;
     for (int i = 0; i < MIC_BANDS; i++) s_band_smooth[i] = 0;
@@ -253,13 +272,36 @@ static void tick(ExperimentContext* ctx)
     vol = s_vol_smooth;
     calc_octave_bands(s_wave_buf, out_n, MIC_SAMPLE_RATE, s_band_levels, MIC_BANDS);
     for (int i = 0; i < MIC_BANDS; i++) {
-        s_band_smooth[i] += (s_band_levels[i] - s_band_smooth[i]) >> MIC_UI_SMOOTH_SHIFT;
-        s_band_levels[i] = s_band_smooth[i];
+        int raw = s_band_levels[i];
+        if (raw < MIC_UI_BAND_NOISE_GATE) raw = 0;
+
+        int cur = s_band_smooth[i];
+        if (raw > cur) {
+            int step = (raw - cur + ((1 << MIC_UI_BAND_ATTACK_SHIFT) - 1)) >> MIC_UI_BAND_ATTACK_SHIFT;
+            if (step < 1) step = 1;
+            cur += step;
+            if (cur > raw) cur = raw;
+        } else if (raw < cur) {
+            int step = (cur - raw + ((1 << MIC_UI_BAND_DECAY_SHIFT) - 1)) >> MIC_UI_BAND_DECAY_SHIFT;
+            if (step < 1) step = 1;
+            cur -= step;
+            if (cur < raw) cur = raw;
+        }
+
+        s_band_smooth[i] = cur;
+        s_band_levels[i] = cur;
     }
     int freq = peak_band_freq(s_band_levels, MIC_BANDS);
 
+    if ((now_ms - s_last_log_ms) >= 1000U) {
+        s_last_log_ms = now_ms;
+        ESP_LOGI(TAG, "mic update: vol=%d%% peak_band=%dHz", vol, freq);
+    }
+
     Ui_LcdLock();
+    Ui_BeginBatch();
     Ui_DrawMicBody(s_band_levels, MIC_BANDS, freq, vol);
+    Ui_EndBatch();
     Ui_LcdUnlock();
     s_last_ui_ms = now_ms;
 }

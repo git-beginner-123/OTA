@@ -117,6 +117,12 @@ static void draw_playfield_dynamic(void)
 
     // Always draw paddle so it is visible in menu/initial state too.
     St7789_FillRect(s_pad_x, s_pad_y, s_pad_w, s_pad_h, c_paddle());
+
+    // Restore borders after dynamic erases to avoid "miss-ball" ghost marks.
+    St7789_FillRect(s_left, s_top, s_right - s_left + 1, 2, c_border());
+    St7789_FillRect(s_left, s_bottom - 1, s_right - s_left + 1, 2, c_border());
+    St7789_FillRect(s_left, s_top, 2, s_bottom - s_top + 1, c_border());
+    St7789_FillRect(s_right - 1, s_top, 2, s_bottom - s_top + 1, c_border());
 }
 
 static void draw_hud(void)

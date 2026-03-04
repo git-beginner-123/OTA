@@ -27,6 +27,12 @@ static bool s_last_correct = false;
 #define SHAPE_BUF_MAX 64
 static uint16_t s_shape_buf[SHAPE_BUF_MAX * SHAPE_BUF_MAX];
 
+static uint16_t c_bg(void) { return Ui_ColorRGB(8, 15, 26); }
+static uint16_t c_panel(void) { return Ui_ColorRGB(18, 28, 42); }
+static uint16_t c_line(void) { return Ui_ColorRGB(239, 125, 74); }
+static uint16_t c_beam(void) { return Ui_ColorRGB(235, 235, 235); }
+static uint16_t c_txt(void) { return Ui_ColorRGB(239, 125, 74); }
+
 static void draw_box(int x, int y, int w, int h, uint16_t bg, uint16_t border)
 {
     St7789_FillRect(x, y, w, h, bg);
@@ -146,17 +152,17 @@ static void next_question(void)
 static void draw_full(void)
 {
     int sum = s_left_a + s_left_b;
-    char relation = relation_char(sum, s_right);
+    (void)relation_char(sum, s_right);
     int tilt = 0;
     // Show user's current pick on the seesaw itself.
     if (s_pick == '>') tilt = 9;      // left lower
     else if (s_pick == '<') tilt = -9; // right lower
 
-    uint16_t bg = Ui_ColorRGB(8, 15, 26);
-    uint16_t panel = Ui_ColorRGB(18, 28, 42);
-    uint16_t line = Ui_ColorRGB(239, 125, 74);
-    uint16_t beam = Ui_ColorRGB(235, 235, 235);
-    uint16_t txt = Ui_ColorRGB(239, 125, 74);
+    uint16_t bg = c_bg();
+    uint16_t panel = c_panel();
+    uint16_t line = c_line();
+    uint16_t beam = c_beam();
+    uint16_t txt = c_txt();
 
     char nbuf[8];
     char score_line[24];
@@ -195,6 +201,28 @@ static void draw_full(void)
     snprintf(score_line, sizeof(score_line), "Score: %d/%d", s_correct, s_total);
     Ui_DrawTextAtBg(18, 208, score_line, txt, bg);
     Ui_DrawTextAtBg(18, 228, s_last_result, s_last_correct ? Ui_ColorRGB(120, 230, 130) : txt, bg);
+    Ui_LcdUnlock();
+}
+
+static void draw_balance_only(void)
+{
+    int tilt = 0;
+    if (s_pick == '>') tilt = 9;
+    else if (s_pick == '<') tilt = -9;
+
+    uint16_t bg = c_bg();
+    uint16_t line = c_line();
+    uint16_t beam = c_beam();
+    uint16_t txt = c_txt();
+
+    Ui_LcdLock();
+    // Local redraw region for seesaw + pick marker.
+    St7789_FillRect(32, 108, 176, 56, bg);
+    draw_beam(36, 122, 168, 10, tilt, beam);
+    draw_circle_outline(120, 128, 12, line, bg);
+    draw_triangle_support(120, 140, 16, line);
+    char pick_txt[2] = {s_pick, '\0'};
+    Ui_DrawTextAtBg(117, 120, pick_txt, txt, bg);
     Ui_LcdUnlock();
 }
 
@@ -240,13 +268,13 @@ static void on_key(ExperimentContext* ctx, InputKey key)
         if (s_pick == '>') s_pick = '=';
         else if (s_pick == '=') s_pick = '<';
         else s_pick = '>';
-        draw_full();
+        draw_balance_only();
         return;
     } else if (key == kInputDown) {
         if (s_pick == '>') s_pick = '<';
         else if (s_pick == '<') s_pick = '=';
         else s_pick = '>';
-        draw_full();
+        draw_balance_only();
         return;
     } else if (key == kInputEnter) {
         choice = s_pick;

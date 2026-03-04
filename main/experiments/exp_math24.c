@@ -104,16 +104,9 @@ static char op_char(int op)
     return kOps[op];
 }
 
-static const char* sel_name(int sel)
+static bool is_op_token(char c)
 {
-    switch (sel) {
-        case kSelOp1: return "OP1";
-        case kSelOp2: return "OP2";
-        case kSelOp3: return "OP3";
-        case kSelPattern: return "PATT";
-        case kSelCheck: return "CHECK";
-        default: return "?";
-    }
+    return (c == '+') || (c == '-') || (c == 'x') || (c == '/');
 }
 
 static bool apply_op(double a, double b, int op, double* out)
@@ -243,22 +236,20 @@ static void build_expr_text(char* out, int cap)
 
 static void draw_body(void)
 {
-    char expr[40], l2[56], l3[40], l4[24], l5[40], l6[40], l7[40];
+    char expr[40], l2[24], l9[40];
     double value = 0.0;
     bool valid = eval_expr(s_nums, s_ops, s_pattern, &value);
 
     build_expr_text(expr, (int)sizeof(expr));
-    snprintf(l2, sizeof(l2), "Expr:%s", expr);
-    snprintf(l3, sizeof(l3), "Value: %s", valid ? "" : "INVALID");
-    if (valid) snprintf(l3, sizeof(l3), "Value: %.2f", value);
-    snprintf(l4, sizeof(l4), "Sel: %s", sel_name(s_sel));
-    snprintf(l5, sizeof(l5), " +   -   x   / ");
-    snprintf(l6, sizeof(l6), " ( )   =   DEL ");
-    snprintf(l7, sizeof(l7), " Score: %d   Correct:%d/%d", s_score, s_correct, s_total);
+    // Keep lower-left lines short to avoid overlap with right status panel.
+    // Expr line is drawn token-by-token so active OP can be highlighted.
+    snprintf(l2, sizeof(l2), "E:%.20s", expr);
+    if (valid) snprintf(l9, sizeof(l9), "V:%.2f  S:%d  C:%d/%d", value, s_score, s_correct, s_total);
+    else snprintf(l9, sizeof(l9), "V:INVALID  S:%d  C:%d/%d", s_score, s_correct, s_total);
 
     Ui_BeginBatch();
     if (!s_frame_inited) {
-        Ui_DrawFrame("24 GAME", "DN:NEXT  OK:SET  BACK");
+        Ui_DrawFrame("24 GAME", "LR:SEL  UD:EDIT  OK:CONF  BACK");
         s_frame_inited = true;
     }
     // Avoid full-body clear on every key press (causes visible flicker).
@@ -270,13 +261,58 @@ static void draw_body(void)
     St7789_FillRect(12, 232, St7789_Width() - 24, 18, bg);
     St7789_FillRect(12, 252, St7789_Width() - 24, 18, bg);
     St7789_FillRect(12, 270, St7789_Width() - 24, 18, bg);
-    Ui_DrawTextAtBg(18, 214, l5, Ui_ColorRGB(230, 230, 230), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(18, 234, l6, Ui_ColorRGB(230, 230, 230), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(18, 254, l2, Ui_ColorRGB(230, 230, 230), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(18, 272, l3, Ui_ColorRGB(230, 230, 230), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(138, 214, l4, Ui_ColorRGB(255, 190, 90), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(138, 234, l7, Ui_ColorRGB(180, 220, 180), Ui_ColorRGB(8, 12, 20));
-    Ui_DrawTextAtBg(138, 272, s_msg, Ui_ColorRGB(240, 200, 120), Ui_ColorRGB(8, 12, 20));
+
+    // Operator row with wider spacing + active OP highlight.
+    uint16_t fg_norm = Ui_ColorRGB(210, 220, 235);
+    uint16_t fg_hi = Ui_ColorRGB(255, 210, 90);
+    uint16_t bg_hi = Ui_ColorRGB(40, 52, 88);
+    char op1[8], op2[8], op3[8];
+    snprintf(op1, sizeof(op1), "OP1:%c", op_char(s_ops[0]));
+    snprintf(op2, sizeof(op2), "OP2:%c", op_char(s_ops[1]));
+    snprintf(op3, sizeof(op3), "OP3:%c", op_char(s_ops[2]));
+    Ui_DrawTextAtBg(18, 214, op1, (s_sel == kSelOp1) ? fg_hi : fg_norm, (s_sel == kSelOp1) ? bg_hi : bg);
+    Ui_DrawTextAtBg(92, 214, op2, (s_sel == kSelOp2) ? fg_hi : fg_norm, (s_sel == kSelOp2) ? bg_hi : bg);
+    Ui_DrawTextAtBg(166, 214, op3, (s_sel == kSelOp3) ? fg_hi : fg_norm, (s_sel == kSelOp3) ? bg_hi : bg);
+
+    // Pattern + check row, also highlighted when focused.
+    char patt[24];
+    int patt_show = s_pattern + 1;
+    if (patt_show < 0) patt_show = 0;
+    if (patt_show > 99) patt_show = 99;
+    snprintf(patt, sizeof(patt), "PATT:%02d", patt_show);
+    Ui_DrawTextAtBg(18, 234, patt, (s_sel == kSelPattern) ? fg_hi : fg_norm, (s_sel == kSelPattern) ? bg_hi : bg);
+    Ui_DrawTextAtBg(140, 234, "CHECK:OK", (s_sel == kSelCheck) ? fg_hi : fg_norm, (s_sel == kSelCheck) ? bg_hi : bg);
+
+    // Draw expression with selected OP highlighted in this row too.
+    {
+        const int x0 = 18;
+        const int y0 = 254;
+        const int char_step = 9; // 8x16 font + 1 gap
+        uint16_t expr_fg = Ui_ColorRGB(230, 230, 230);
+        int target_op_idx = -1;
+        if (s_sel == kSelOp1) target_op_idx = 0;
+        else if (s_sel == kSelOp2) target_op_idx = 1;
+        else if (s_sel == kSelOp3) target_op_idx = 2;
+
+        Ui_DrawTextAtBg(x0, y0, "E:", expr_fg, bg);
+
+        int op_seen = 0;
+        for (int i = 0; l2[i] != '\0'; i++) {
+            if (i < 2) continue; // skip "E:"
+            char ch[2] = { l2[i], '\0' };
+            uint16_t fg = expr_fg;
+            uint16_t c_bg = bg;
+            if (is_op_token(l2[i])) {
+                if (op_seen == target_op_idx) {
+                    fg = fg_hi;
+                    c_bg = bg_hi;
+                }
+                op_seen++;
+            }
+            Ui_DrawTextAtBg(x0 + i * char_step, y0, ch, fg, c_bg);
+        }
+    }
+    Ui_DrawTextAtBg(18, 272, l9, Ui_ColorRGB(180, 220, 180), bg);
     Ui_EndBatch();
 }
 
@@ -331,8 +367,9 @@ static void show_requirements(ExperimentContext* ctx)
     Ui_Println("Style: 2x2 nums + op pad.");
     Ui_Println("Goal: make value = 24.");
     Ui_Println("Single player mode.");
-    Ui_Println("DN move sel, UP reverse.");
-    Ui_Println("OK set/check.");
+    Ui_Println("LEFT/RIGHT: select focus.");
+    Ui_Println("UP/DN: change selected op.");
+    Ui_Println("ENTER: confirm (CHECK).");
     Ui_Println("Correct gives +2 points.");
 }
 
@@ -352,18 +389,24 @@ static void stop(ExperimentContext* ctx)
 static void on_key(ExperimentContext* ctx, InputKey key)
 {
     (void)ctx;
-    if (key == kInputDown) {
+    if (key == kInputRight) {
         s_sel = (s_sel + 1) % 5;
+    } else if (key == kInputLeft) {
+        s_sel = (s_sel + 4) % 5;
     } else if (key == kInputUp) {
-        if (s_sel == kSelCheck) {
-            next_question();
-            snprintf(s_msg, sizeof(s_msg), "New puzzle.");
-        } else {
+        if (s_sel == kSelOp1 || s_sel == kSelOp2 || s_sel == kSelOp3 || s_sel == kSelPattern) {
+            cycle_value(+1);
+        }
+    } else if (key == kInputDown) {
+        if (s_sel == kSelOp1 || s_sel == kSelOp2 || s_sel == kSelOp3 || s_sel == kSelPattern) {
             cycle_value(-1);
         }
     } else if (key == kInputEnter) {
-        if (s_sel == kSelCheck) check_answer();
-        else cycle_value(1);
+        if (s_sel == kSelCheck) {
+            check_answer();
+        } else {
+            snprintf(s_msg, sizeof(s_msg), "Set. Move to CHECK.");
+        }
     } else {
         return;
     }

@@ -206,7 +206,7 @@ static void draw_guess_slots(void)
 
 static void draw_scene(void)
 {
-    const char* footer = "UP/DN:KEY  L/R:SLOT  OK:SEL";
+    const char* footer = "UP/LR:KEY  DN:SLOT  OK:SEL";
     if (s_state == kStateLevelSelect) footer = "UP/DN:LV OK:OPEN BACK";
     if (s_state == kStateReveal) footer = "MEMORIZE 5S";
     if (s_state == kStateResult) footer = "UP/DN:LV OK:NEXT BACK";
@@ -278,7 +278,7 @@ static void show_requirements(ExperimentContext* ctx)
     Ui_Println("Digits + letters in keypad.");
     Ui_Println("OK reveals cards for 5s.");
     Ui_Println("Then input full sequence.");
-    Ui_Println("UP/DN: key  L/R: slot");
+    Ui_Println("UP/L/R: key  DN: slot");
 }
 
 static void on_enter(ExperimentContext* ctx)
@@ -334,29 +334,30 @@ static void on_key(ExperimentContext* ctx, InputKey key)
     }
 
     if (s_state == kStateGuessDigits) {
-        if (key == kInputLeft) {
-            s_digit_slot_focus = clamp_int(s_digit_slot_focus - 1, 0, s_card_count - 1);
-            draw_guess_slots();
-            draw_cards(false, s_digit_slot_focus);
-            St7789_Flush();
-            return;
-        }
-        if (key == kInputRight) {
-            s_digit_slot_focus = clamp_int(s_digit_slot_focus + 1, 0, s_card_count - 1);
+        if (key == kInputDown) {
+            s_digit_slot_focus = (s_digit_slot_focus + 1) % s_card_count;
             draw_guess_slots();
             draw_cards(false, s_digit_slot_focus);
             St7789_Flush();
             return;
         }
 
-        if (key == kInputUp) {
+        if (key == kInputLeft) {
             s_focus_idx = (s_focus_idx + KBD_KEYS - 1) % KBD_KEYS;
             draw_keyboard();
             St7789_Flush();
             return;
         }
-        if (key == kInputDown) {
+        if (key == kInputRight) {
             s_focus_idx = (s_focus_idx + 1) % KBD_KEYS;
+            draw_keyboard();
+            St7789_Flush();
+            return;
+        }
+
+        if (key == kInputUp) {
+            // Move one row up on the keyboard and wrap around.
+            s_focus_idx = (s_focus_idx + KBD_KEYS - KBD_COLS) % KBD_KEYS;
             draw_keyboard();
             St7789_Flush();
             return;
