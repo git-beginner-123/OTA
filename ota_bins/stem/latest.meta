@@ -1,5 +1,5 @@
 project=stem_framework_idf61_lcd
 target=stem
-version=v1.2.5-2-g457e087-dirty-5-g0b84616-dirty
+version=v1.2.6S
 source_repo=git-beginner-123/mystem
 source_branch=master
