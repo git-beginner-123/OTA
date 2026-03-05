@@ -2,4 +2,3 @@
 2 CHESS chess
 3 DICE dice
 4 GOMOKU gomoku
-9 STEM stem
