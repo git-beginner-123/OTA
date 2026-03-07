@@ -1,0 +1,6 @@
+version=V2.00
+git=b0f6629
+describe=b0f6629-dirty
+target=chess
+variant=CHESS
+type_id=2
