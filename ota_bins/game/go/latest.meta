@@ -1,7 +1,6 @@
-project_ver=V2.00
-artifact_version=b0f6629-dirty
-display_version=V2.00
-source_git=b0f6629
+project_ver=V2.01-go
+artifact_version=V2.01
+source_git=4a43fe7
 variant=GO
 target=go
 type_id=1

@@ -1,6 +1,5 @@
-version=V2.00
-git=b0f6629
-describe=b0f6629-dirty
+version=V2.01
+git=4a43fe7
 target=go
 variant=GO
 type_id=1

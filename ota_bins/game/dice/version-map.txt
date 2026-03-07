@@ -1,0 +1,5 @@
+version=V2.01
+git=4a43fe7
+target=dice
+variant=DICE
+type_id=3

@@ -1,0 +1,6 @@
+project_ver=V2.01-gomoku
+artifact_version=V2.01
+source_git=4a43fe7
+variant=GOMOKU
+target=gomoku
+type_id=4
