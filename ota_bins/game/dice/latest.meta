@@ -1,6 +1,6 @@
-project_ver=V2.01-dice
-artifact_version=V2.01
-source_git=4a43fe7
+project_ver=V2.02-dice
+artifact_version=V2.02
+source_git=712bad8
 variant=DICE
 target=dice
 type_id=3

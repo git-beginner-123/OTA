@@ -1,5 +1,5 @@
-version=V2.01
-git=4a43fe7
+version=V2.02
+git=712bad8
 target=go
 variant=GO
 type_id=1
