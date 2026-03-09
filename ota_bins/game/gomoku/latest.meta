@@ -1,6 +1,7 @@
-project_ver=V2.02-gomoku
-artifact_version=V2.02
-source_git=712bad8
+project_ver=V2.04
+artifact_version=3fbbe1a-dirty
+display_version=V2.04
+source_git=3fbbe1a
 variant=GOMOKU
 target=gomoku
 type_id=4
