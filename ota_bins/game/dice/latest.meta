@@ -1,7 +1,7 @@
 project_ver=V2.04
-artifact_version=3fbbe1a-dirty
+artifact_version=a96fce8-dirty
 display_version=V2.04
-source_git=3fbbe1a
+source_git=a96fce8
 variant=DICE
 target=dice
 type_id=3

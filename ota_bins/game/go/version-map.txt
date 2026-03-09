@@ -1,6 +1,6 @@
 version=V2.04
-git=3fbbe1a
-describe=3fbbe1a-dirty
+git=a96fce8
+describe=a96fce8-dirty
 target=go
 variant=GO
 type_id=1

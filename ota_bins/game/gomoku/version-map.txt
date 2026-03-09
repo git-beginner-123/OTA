@@ -1,6 +1,6 @@
 version=V2.04
-git=3fbbe1a
-describe=3fbbe1a-dirty
+git=a96fce8
+describe=a96fce8-dirty
 target=gomoku
 variant=GOMOKU
 type_id=4
