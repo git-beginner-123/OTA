@@ -1,6 +1,6 @@
-version=V2.04
-git=a96fce8
-describe=a96fce8-dirty
+version=V2.05
+git=5784053
+describe=5784053
 target=chess
 variant=CHESS
 type_id=2

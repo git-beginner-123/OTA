@@ -1,7 +1,7 @@
-project_ver=V2.04
-artifact_version=a96fce8-dirty
-display_version=V2.04
-source_git=a96fce8
+project_ver=V2.05
+artifact_version=5784053
+display_version=V2.05
+source_git=5784053
 variant=CHESS
 target=chess
 type_id=2
